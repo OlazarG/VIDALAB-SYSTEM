@@ -1,0 +1,881 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIDALAB-SYSTEM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <h2>VIDALAB</h2>
+            <span>Sistema de caja y facturacion</span>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link active" onclick="showSection('dashboard', this)">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" onclick="showSection('inventario', this)">
+                    <i class="fas fa-box"></i> Planilla Diaria
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="showSection('clientes', this)">
+                    <i class="fas fa-users"></i> Clientes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="showSection('facturacion', this)">
+                    <i class="fas fa-file-invoice"></i> Facturación
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="showSection('reportes', this)">
+                    <i class="fas fa-chart-bar"></i> Reportes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" onclick="showSection('config', this)">
+                    <i class="fas fa-cog"></i> Config. SIN
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section-view active">
+            <header class="header">
+                <div class="header-title">
+                    <h1>Facturación Electrónica</h1>
+                    <p>Emisión y gestión de facturas</p>
+                </div>
+                <button class="btn-primary" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Nueva Factura
+                </button>
+            </header>
+
+            <!-- Dashboard Cards -->
+            <div class="dashboard-cards">
+                <div class="card card-blue">
+                    <div class="card-title">Facturas Hoy</div>
+                    <div class="card-value">48</div>
+                    <div class="card-icon"><i class="fas fa-file-invoice"></i></div>
+                </div>
+                <div class="card card-green">
+                    <div class="card-title">Monto Total Hoy</div>
+                    <div class="card-value">Gs 45,320</div>
+                    <div class="card-icon"><i class="fas fa-money-bill-wave"></i></div>
+                </div>
+                <div class="card card-purple">
+                    <div class="card-title">Factura Promedio</div>
+                    <div class="card-value">Gs 943</div>
+                    <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+                </div>
+                <div class="card card-orange">
+                    <div class="card-title">Anuladas</div>
+                    <div class="card-value">2</div>
+                    <div class="card-icon"><i class="fas fa-ban"></i></div>
+                </div>
+            </div>
+
+            <!-- Invoice Table -->
+            <div class="table-controls">
+                <div class="filters">
+                    <button class="filter-btn active">Todas</button>
+                    <button class="filter-btn">Emitidas</button>
+                    <button class="filter-btn">Anuladas</button>
+                    <button class="filter-btn">Contingencia</button>
+                </div>
+                <div class="search-bar">
+                    <i class="fas fa-search" style="color: #999;"></i>
+                    <input type="text" placeholder="Buscar por número, NIT o razón social...">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N° Factura</th>
+                            <th>NIT</th>
+                            <th>Razón Social</th>
+                            <th>Fecha/Hora</th>
+                            <th>Monto (Gs)</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>001-0000001</td>
+                            <td>1234567890</td>
+                            <td>Juan Pérez García</td>
+                            <td>28/10/2025 10:30</td>
+                            <td>1500.00</td>
+                            <td><span class="status-badge status-emitida">Emitida</span></td>
+                            <td class="actions">
+                                <i class="fas fa-eye action-btn" title="Ver"></i>
+                                <i class="fas fa-download action-btn" title="Descargar"></i>
+                                <i class="fas fa-trash action-btn action-delete" title="Anular"></i>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Inventario / Planilla Diaria Section -->
+        <div id="inventario" class="section-view">
+            <header class="header">
+                <div class="header-title">
+                    <h1>Planilla Diaria</h1>
+                    <p>Registro de movimientos diarios</p>
+                </div>
+            </header>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="openTab(event, 'tab-pacientes')">Pacientes</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-ingresos')">Ingresos</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-egresos')">Egresos</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-movimientos'); loadMovements()">Planilla de
+                    movimientos</button>
+            </div>
+
+            <!-- Tab Pacientes -->
+            <div id="tab-pacientes" class="tab-content active">
+                <div class="form-container">
+                    <h3>Registro de Pacientes</h3>
+                    <form id="patientForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Fecha</label>
+                                <input type="datetime-local" id="patientDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" id="patientName" required placeholder="Nombre del paciente">
+                            </div>
+                            <div class="form-group">
+                                <label>Monto (Gs)</label>
+                                <input type="number" id="patientAmount" required placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Saldo (Gs)</label>
+                                <input type="number" id="patientBalance" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono</label>
+                                <input type="text" id="patientPhone" required placeholder="09XX...">
+                            </div>
+                            <div class="form-group">
+                                <label>Observación</label>
+                                <input type="text" id="patientObservation" placeholder="Opcional">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary"
+                            style="width: 100%; justify-content: center; margin-top: 1rem;">
+                            Guardar Paciente
+                        </button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <h3>Últimos Pacientes</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Paciente</th>
+                                <th>Monto</th>
+                                <th>Saldo</th>
+                                <th>Teléfono</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab Ingresos -->
+            <div id="tab-ingresos" class="tab-content">
+                <div class="form-container">
+                    <h3>Registro de Otros Ingresos</h3>
+                    <form id="incomeForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Fecha</label>
+                                <input type="datetime-local" id="incomeDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Concepto</label>
+                                <input type="text" id="incomeConcept" required placeholder="Ej: Venta de producto">
+                            </div>
+                            <div class="form-group">
+                                <label>Monto (Gs)</label>
+                                <input type="number" id="incomeAmount" required placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Observación</label>
+                                <input type="text" id="incomeObservation" placeholder="Opcional">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary"
+                            style="width: 100%; justify-content: center; margin-top: 1rem;">
+                            Registrar Ingreso
+                        </button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <h3>Últimos Ingresos</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                                <th>Observación</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incomeTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab Egresos -->
+            <div id="tab-egresos" class="tab-content">
+                <div class="form-container">
+                    <h3>Registro de Egresos</h3>
+                    <form id="expenseForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Fecha</label>
+                                <input type="datetime-local" id="expenseDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Concepto</label>
+                                <input type="text" id="expenseConcept" required placeholder="Ej: Pago de luz">
+                            </div>
+                            <div class="form-group">
+                                <label>Monto (Gs)</label>
+                                <input type="number" id="expenseAmount" required placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Categoría</label>
+                                <select id="expenseCategory" class="form-control">
+                                    <option value="Operativo">Operativo</option>
+                                    <option value="Administrativo">Administrativo</option>
+                                    <option value="Insumos">Insumos</option>
+                                    <option value="Otros">Otros</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary"
+                            style="width: 100%; justify-content: center; margin-top: 1rem;">
+                            Registrar Egreso
+                        </button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <h3>Últimos Egresos</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                                <th>Categoría</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab Planilla de Movimientos -->
+            <div id="tab-movimientos" class="tab-content">
+                <div class="table-container" style="padding: 0; border: 1px solid #ccc; border-radius: 4px;">
+                    <div
+                        style="background: #e0e0e0; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Planilla General de Movimientos</span>
+                        <span style="font-size: 1.2em;">Total en Caja: <span id="totalCashBox" style="color: #00c853;">0
+                                Gs</span></span>
+                    </div>
+                    <table class="excel-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Descripción / Nombre</th>
+                                <th>Ingreso</th>
+                                <th>Egreso</th>
+                                <th>Saldo Acumulado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movementsBody"></tbody>
+                    </table>
+                </div>
+                <script>
+                    window.loadMovements = async function () {
+                        try {
+                            const [patientsRes, incomesRes, expensesRes] = await Promise.all([
+                                fetch('/api/patient'),
+                                fetch('/api/income'),
+                                fetch('/api/expense')
+                            ]);
+
+                            const patients = await patientsRes.json();
+                            const incomes = await incomesRes.json();
+                            const expenses = await expensesRes.json();
+
+                            let allMovements = [];
+
+                            // Normalize Data
+                            patients.forEach(p => {
+                                allMovements.push({
+                                    date: new Date(p.fechaIngreso),
+                                    type: 'Paciente',
+                                    description: p.nombre,
+                                    income: p.monto,
+                                    expense: 0
+                                });
+                            });
+
+                            incomes.forEach(i => {
+                                allMovements.push({
+                                    date: new Date(i.fecha),
+                                    type: 'Otro Ingreso',
+                                    description: i.observacion,
+                                    income: i.monto,
+                                    expense: 0
+                                });
+                            });
+
+                            expenses.forEach(e => {
+                                allMovements.push({
+                                    date: new Date(e.fecha),
+                                    type: 'Egreso',
+                                    description: e.beneficiario,
+                                    income: 0,
+                                    expense: e.monto
+                                });
+                            });
+
+                            // Sort by Date
+                            allMovements.sort((a, b) => a.date - b.date);
+
+                            const tbody = document.getElementById('movementsBody');
+                            tbody.innerHTML = '';
+                            let runningBalance = 0;
+
+                            allMovements.forEach(m => {
+                                runningBalance += (m.income - m.expense);
+                                const row = `<tr>
+                                    <td style="padding: 4px 8px;">${m.date.toLocaleString('es-PY')}</td>
+                                    <td style="padding: 4px 8px;">${m.type}</td>
+                                    <td style="padding: 4px 8px;">${m.description}</td>
+                                    <td style="padding: 4px 8px; color: ${m.income > 0 ? 'green' : 'inherit'}; text-align: right;">${m.income > 0 ? new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(m.income) : '-'}</td>
+                                    <td style="padding: 4px 8px; color: ${m.expense > 0 ? 'red' : 'inherit'}; text-align: right;">${m.expense > 0 ? new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(m.expense) : '-'}</td>
+                                    <td style="padding: 4px 8px; font-weight: bold; text-align: right;">${new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(runningBalance)}</td>
+                                </tr>`;
+                                tbody.innerHTML += row;
+                            });
+
+                            document.getElementById('totalCashBox').textContent = new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(runningBalance);
+
+                        } catch (e) { console.error("Error loading movements:", e); }
+                    }
+                </script>
+            </div>
+        </div>
+
+
+        <!-- Clientes Section -->
+        <div id="clientes" class="section-view">
+            <header class="header">
+                <div class="header-title">
+                    <h1>Gestión de Clientes</h1>
+                    <p>Administración de base de datos de clientes</p>
+                </div>
+            </header>
+
+            <div class="form-container">
+                <h3>Nuevo Cliente</h3>
+                <form id="clientForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>RUC / CI</label>
+                            <input type="text" id="clientRuc" required placeholder="1234567-8">
+                        </div>
+                        <div class="form-group">
+                            <label>Razón Social</label>
+                            <input type="text" id="clientName" required placeholder="Nombre o Razón Social">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="clientEmail" placeholder="cliente@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="text" id="clientPhone" placeholder="09XX...">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Dirección</label>
+                            <input type="text" id="clientAddress" placeholder="Dirección completa">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary"
+                        style="width: 100%; justify-content: center; margin-top: 1rem;">
+                        Guardar Cliente
+                    </button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Directorio de Clientes</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>RUC / CI</th>
+                            <th>Razón Social</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Placeholder Sections -->
+        <div id="facturacion" class="section-view">
+            <h2>Facturación - Ver Dashboard</h2>
+        </div>
+        <div id="reportes" class="section-view">
+            <h2>Reportes - Próximamente</h2>
+        </div>
+        <div id="config" class="section-view">
+            <h2>Configuración - Próximamente</h2>
+        </div>
+
+    </main>
+
+    <!-- Invoice Modal -->
+    <div id="invoiceModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeInvoiceModal()">&times;</button>
+            <h2>Nueva Factura</h2>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>Cliente (RUC/CI)</label>
+                    <input type="text" id="ruc" list="clientList" placeholder="Ingrese RUC o CI">
+                    <datalist id="clientList"></datalist>
+                </div>
+                <div class="form-group full-width">
+                    <label>Razón Social</label>
+                    <input type="text" id="razonSocial" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Condición</label>
+                    <select id="invoiceCondition" class="form-control" onchange="toggleCreditFields()">
+                        <option value="CONTADO">Contado</option>
+                        <option value="CREDITO">Crédito</option>
+                    </select>
+                </div>
+                <div class="form-group" id="paymentMethodGroup">
+                    <label>Medio de Pago</label>
+                    <select id="invoicePaymentMethod" class="form-control">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                        <option value="Transferencia">Transferencia Bancaria</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+                <div class="form-group" id="creditTermGroup" style="display: none;">
+                    <label>Días de Plazo</label>
+                    <input type="number" id="invoiceCreditDays" class="form-control" placeholder="Ej: 30">
+                </div>
+                <div class="form-group full-width">
+                    <h3>Items</h3>
+                    <table id="invoiceItemsTable" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>Cant.</th>
+                                <th>Precio Unit.</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <button type="button" class="btn-secondary" onclick="addInvoiceItem()" style="margin-top:10px">+
+                        Agregar Item</button>
+                </div>
+            </div>
+            <div style="margin-top: 2rem; text-align: right;">
+                <h3>Total: <span id="invoiceTotal">0</span> Gs</h3>
+                <button class="btn-primary" onclick="saveInvoice()" style="margin-left: auto;">Emitir Factura</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let clientsMap = {};
+        let invoiceItems = [];
+
+        // Navigation
+        function showSection(id, link) {
+            document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            if (link) link.classList.add('active');
+
+            if (id === 'inventario') {
+                loadDailySummary();
+            } else if (id === 'clientes') {
+                loadClientsTable();
+            }
+        }
+
+        // Tab Switching
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.className += " active";
+        }
+
+        // --- Data Loading Functions ---
+
+        async function loadDailySummary() {
+            loadPatients();
+            loadIncomes();
+            loadExpenses();
+        }
+
+        async function loadPatients() {
+            try {
+                const res = await fetch('/api/patient');
+                if (!res.ok) throw new Error('Failed to load patients');
+                const data = await res.json();
+                const tbody = document.getElementById('patientTableBody');
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                    const row = `<tr>
+                        <td>${formatDate(item.fechaIngreso)}</td>
+                        <td>${item.nombre}</td>
+                        <td>${formatCurrency(item.monto)}</td>
+                        <td>${formatCurrency(item.saldo)}</td>
+                        <td>${item.telefono}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadIncomes() {
+            try {
+                const res = await fetch('/api/income');
+                if (!res.ok) throw new Error('Failed to load incomes');
+                const data = await res.json();
+                const tbody = document.getElementById('incomeTableBody');
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                    const row = `<tr>
+                        <td>${formatDate(item.fecha)}</td>
+                        <td>${item.observacion}</td>
+                        <td>${formatCurrency(item.monto)}</td>
+                        <td>-</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadExpenses() {
+            try {
+                const res = await fetch('/api/expense');
+                if (!res.ok) throw new Error('Failed to load expenses');
+                const data = await res.json();
+                const tbody = document.getElementById('expenseTableBody');
+                tbody.innerHTML = '';
+                data.forEach(item => {
+                    const row = `<tr>
+                        <td>${formatDate(item.fecha)}</td>
+                        <td>${item.beneficiario}</td>
+                        <td>${formatCurrency(item.monto)}</td>
+                        <td>${item.beneficiario.match(/\(([^)]+)\)/)?.[1] || '-'}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadClientsTable() {
+            try {
+                const res = await fetch('/api/clientes');
+                if (!res.ok) throw new Error('Failed to load clients');
+                const clients = await res.json();
+                const tbody = document.getElementById('clientsTableBody');
+                tbody.innerHTML = '';
+                clients.forEach(c => {
+                    const row = `<tr>
+                        <td>${c.ruc}</td>
+                        <td>${c.razonSocial}</td>
+                        <td>${c.email || '-'}</td>
+                        <td>${c.telefono || '-'}</td>
+                        <td class="actions">
+                            <i class="fas fa-edit action-btn" title="Editar"></i>
+                            <i class="fas fa-trash action-btn action-delete" title="Eliminar"></i>
+                        </td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        // --- Form Submissions ---
+
+        document.getElementById('patientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                fechaIngreso: document.getElementById('patientDate').value,
+                nombre: document.getElementById('patientName').value,
+                monto: parseFloat(document.getElementById('patientAmount').value),
+                saldo: parseFloat(document.getElementById('patientBalance').value || 0),
+                telefono: document.getElementById('patientPhone').value,
+                observacion: document.getElementById('patientObservation').value
+            };
+            await postData('/api/patient', data, loadPatients);
+            e.target.reset();
+        });
+
+        document.getElementById('incomeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                fecha: document.getElementById('incomeDate').value,
+                observacion: document.getElementById('incomeConcept').value + (document.getElementById('incomeObservation').value ? ' - ' + document.getElementById('incomeObservation').value : ''),
+                monto: parseFloat(document.getElementById('incomeAmount').value)
+            };
+            await postData('/api/income', data, loadIncomes);
+            e.target.reset();
+        });
+
+        document.getElementById('expenseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                fecha: document.getElementById('expenseDate').value,
+                beneficiario: document.getElementById('expenseConcept').value + ' (' + document.getElementById('expenseCategory').value + ')',
+                monto: parseFloat(document.getElementById('expenseAmount').value)
+            };
+            await postData('/api/expense', data, loadExpenses);
+            e.target.reset();
+        });
+
+        document.getElementById('clientForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                ruc: document.getElementById('clientRuc').value,
+                razonSocial: document.getElementById('clientName').value,
+                email: document.getElementById('clientEmail').value,
+                telefono: document.getElementById('clientPhone').value,
+                direccion: document.getElementById('clientAddress').value
+            };
+            await postData('/api/clientes', data, loadClientsTable);
+            e.target.reset();
+        });
+
+        // --- Helpers ---
+
+        async function postData(url, data, callback) {
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    alert('Guardado correctamente');
+                    if (callback) callback();
+                } else {
+                    alert('Error al guardar');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error de conexión');
+            }
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(val);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            return new Date(dateString).toLocaleString('es-PY');
+        }
+
+        // --- Invoice Modal Logic (Existing) ---
+
+        function openModal() {
+            document.getElementById('invoiceModal').classList.add('active');
+            loadClientsForModal();
+            toggleCreditFields();
+        }
+
+        function closeInvoiceModal() {
+            document.getElementById('invoiceModal').classList.remove('active');
+        }
+
+        function toggleCreditFields() {
+            const condition = document.getElementById('invoiceCondition').value;
+            const creditGroup = document.getElementById('creditTermGroup');
+            if (condition === 'CREDITO') {
+                creditGroup.style.display = 'block';
+            } else {
+                creditGroup.style.display = 'none';
+            }
+        }
+
+        function addInvoiceItem() {
+            const desc = prompt("Descripción del item:");
+            if (!desc) return;
+            const qty = parseFloat(prompt("Cantidad:", "1"));
+            const price = parseFloat(prompt("Precio Unitario:", "0"));
+
+            if (desc && qty && price) {
+                invoiceItems.push({ description: desc, quantity: qty, unitPrice: price });
+                renderInvoiceItems();
+            }
+        }
+
+        function renderInvoiceItems() {
+            const tbody = document.querySelector('#invoiceItemsTable tbody');
+            tbody.innerHTML = '';
+            let total = 0;
+
+            invoiceItems.forEach((item, index) => {
+                const subtotal = item.quantity * item.unitPrice;
+                total += subtotal;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.description}</td>
+                    <td>${item.quantity}</td>
+                    <td>${formatCurrency(item.unitPrice)}</td>
+                    <td>${formatCurrency(subtotal)}</td>
+                    <td><button onclick="removeInvoiceItem(${index})" style="color:red;border:none;background:none;cursor:pointer"><i class="fas fa-trash"></i></button></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('invoiceTotal').textContent = formatCurrency(total);
+        }
+
+        function removeInvoiceItem(index) {
+            invoiceItems.splice(index, 1);
+            renderInvoiceItems();
+        }
+
+        async function saveInvoice() {
+            const ruc = document.getElementById('ruc').value;
+            if (!ruc || invoiceItems.length === 0) {
+                alert('Debe seleccionar un cliente y agregar items');
+                return;
+            }
+
+            const invoiceData = {
+                rucCliente: ruc,
+                razonSocialCliente: document.getElementById('razonSocial').value,
+                emailCliente: document.getElementById('email').value,
+                condicion: document.getElementById('invoiceCondition').value,
+                formaPago: document.getElementById('invoicePaymentMethod').value,
+                diasPlazo: document.getElementById('invoiceCondition').value === 'CREDITO' ? parseInt(document.getElementById('invoiceCreditDays').value) : 0,
+                detalles: invoiceItems.map(i => ({
+                    descripcion: i.description,
+                    cantidad: i.quantity,
+                    precioUnitario: i.unitPrice
+                }))
+            };
+
+            try {
+                const res = await fetch('/api/facturas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(invoiceData)
+                });
+
+                if (res.ok) {
+                    alert('Factura emitida correctamente');
+                    closeInvoiceModal();
+                    invoiceItems = [];
+                    renderInvoiceItems();
+                    document.getElementById('ruc').value = '';
+                    document.getElementById('razonSocial').value = '';
+                } else {
+                    alert('Error al emitir factura');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error de conexión');
+            }
+        }
+
+        async function loadClientsForModal() {
+            try {
+                const res = await fetch('/api/clientes');
+                const clients = await res.json();
+                const datalist = document.getElementById('clientList');
+                datalist.innerHTML = '';
+                clientsMap = {};
+                clients.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c.ruc;
+                    option.textContent = c.razonSocial;
+                    datalist.appendChild(option);
+                    clientsMap[c.ruc] = c;
+                });
+            } catch (e) { console.error("Error loading clients:", e); }
+        }
+
+        document.getElementById('ruc').addEventListener('input', function (e) {
+            const val = e.target.value;
+            if (clientsMap[val]) {
+                document.getElementById('razonSocial').value = clientsMap[val].razonSocial;
+            }
+        });
+
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDailySummary();
+        });
+
+    </script>
+</body>
+
+</html>
