@@ -17,18 +17,23 @@ public class Paciente {
     private Double saldo; // Saldo pendiente
     private String telefono;
     private String observacion;
+    private String motivoConsulta;
+    private String metodoPago; // "Efectivo" o "POS"
+    private Long clientId;
 
     public Paciente() {
     }
 
     public Paciente(LocalDateTime fechaIngreso, String nombre, Double monto, Double saldo, String telefono,
-            String observacion) {
+            String observacion, String motivoConsulta, String metodoPago) {
         this.fechaIngreso = fechaIngreso;
         this.nombre = nombre;
         this.monto = monto;
         this.saldo = saldo;
         this.telefono = telefono;
         this.observacion = observacion;
+        this.motivoConsulta = motivoConsulta;
+        this.metodoPago = metodoPago;
     }
 
     public Long getId() {
@@ -85,5 +90,29 @@ public class Paciente {
 
     public void setObservacion(String observacion) {
         this.observacion = observacion;
+    }
+
+    public String getMotivoConsulta() {
+        return motivoConsulta;
+    }
+
+    public void setMotivoConsulta(String motivoConsulta) {
+        this.motivoConsulta = motivoConsulta;
+    }
+
+    public Long getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(Long clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getMetodoPago() {
+        return metodoPago;
+    }
+
+    public void setMetodoPago(String metodoPago) {
+        this.metodoPago = metodoPago;
     }
 }

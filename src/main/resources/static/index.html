@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -145,14 +146,18 @@
                     <h1>Planilla Diaria</h1>
                     <p>Registro de movimientos diarios</p>
                 </div>
+                <button class="btn-primary" onclick="openExportModal()">
+                    <i class="fas fa-file-excel"></i> Exportar Movimientos
+                </button>
             </header>
 
             <div class="tabs">
                 <button class="tab-btn active" onclick="openTab(event, 'tab-pacientes')">Pacientes</button>
                 <button class="tab-btn" onclick="openTab(event, 'tab-ingresos')">Ingresos</button>
                 <button class="tab-btn" onclick="openTab(event, 'tab-egresos')">Egresos</button>
-                <button class="tab-btn" onclick="openTab(event, 'tab-movimientos'); loadMovements()">Planilla de
+                <button class="tab-btn" onclick="openTab(event, 'tab-movimientos'); initMovementsTab()">Planilla de
                     movimientos</button>
+
             </div>
 
             <!-- Tab Pacientes -->
@@ -166,8 +171,19 @@
                                 <input type="datetime-local" id="patientDate" required>
                             </div>
                             <div class="form-group">
+                                <label>Cliente (Opcional - RUC/CI o Nombre)</label>
+                                <input type="text" id="patientClientSearch" list="patientClientList"
+                                    placeholder="Buscar cliente o dejar vacío...">
+                                <datalist id="patientClientList"></datalist>
+                                <input type="hidden" id="patientClientId">
+                            </div>
+                            <div class="form-group" id="patientNameGroup">
                                 <label>Nombre Completo</label>
-                                <input type="text" id="patientName" required placeholder="Nombre del paciente">
+                                <input type="text" id="patientName" placeholder="Nombre del paciente">
+                            </div>
+                            <div class="form-group" id="patientPhoneGroup">
+                                <label>Teléfono</label>
+                                <input type="text" id="patientPhone" placeholder="09XX...">
                             </div>
                             <div class="form-group">
                                 <label>Monto (Gs)</label>
@@ -178,8 +194,16 @@
                                 <input type="number" id="patientBalance" placeholder="0">
                             </div>
                             <div class="form-group">
-                                <label>Teléfono</label>
-                                <input type="text" id="patientPhone" required placeholder="09XX...">
+                                <label>Método de Pago</label>
+                                <select id="patientPaymentMethod" class="form-control" required>
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="POS">POS</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Motivo de Visita</label>
+                                <textarea id="patientVisitReason" placeholder="Describa el motivo de la visita..."
+                                    rows="3"></textarea>
                             </div>
                             <div class="form-group">
                                 <label>Observación</label>
@@ -194,11 +218,25 @@
                 </div>
                 <div class="table-container">
                     <h3>Últimos Pacientes</h3>
+                    <div
+                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                        <label style="font-weight: 500;">Desde:</label>
+                        <input type="date" id="patientsDateFrom"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <label style="font-weight: 500;">Hasta:</label>
+                        <input type="date" id="patientsDateTo"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <button class="btn-primary" onclick="filterPatients()"
+                            style="padding: 6px 16px; font-size: 0.9em;">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
                     <table>
                         <thead>
                             <tr>
                                 <th>Fecha</th>
                                 <th>Paciente</th>
+                                <th>Motivo</th>
                                 <th>Monto</th>
                                 <th>Saldo</th>
                                 <th>Teléfono</th>
@@ -240,6 +278,19 @@
                 </div>
                 <div class="table-container">
                     <h3>Últimos Ingresos</h3>
+                    <div
+                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                        <label style="font-weight: 500;">Desde:</label>
+                        <input type="date" id="incomesDateFrom"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <label style="font-weight: 500;">Hasta:</label>
+                        <input type="date" id="incomesDateTo"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <button class="btn-primary" onclick="filterIncomes()"
+                            style="padding: 6px 16px; font-size: 0.9em;">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
                     <table>
                         <thead>
                             <tr>
@@ -290,6 +341,19 @@
                 </div>
                 <div class="table-container">
                     <h3>Últimos Egresos</h3>
+                    <div
+                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                        <label style="font-weight: 500;">Desde:</label>
+                        <input type="date" id="expensesDateFrom"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <label style="font-weight: 500;">Hasta:</label>
+                        <input type="date" id="expensesDateTo"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <button class="btn-primary" onclick="filterExpenses()"
+                            style="padding: 6px 16px; font-size: 0.9em;">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
                     <table>
                         <thead>
                             <tr>
@@ -313,12 +377,26 @@
                         <span style="font-size: 1.2em;">Total en Caja: <span id="totalCashBox" style="color: #00c853;">0
                                 Gs</span></span>
                     </div>
+                    <div
+                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center;">
+                        <label style="font-weight: 500;">Desde:</label>
+                        <input type="date" id="movementsDateFrom"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <label style="font-weight: 500;">Hasta:</label>
+                        <input type="date" id="movementsDateTo"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <button class="btn-primary" onclick="filterMovements()"
+                            style="padding: 6px 16px; font-size: 0.9em;">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
                     <table class="excel-table">
                         <thead>
                             <tr>
                                 <th>Fecha</th>
                                 <th>Tipo</th>
                                 <th>Descripción / Nombre</th>
+                                <th>Motivo</th>
                                 <th>Ingreso</th>
                                 <th>Egreso</th>
                                 <th>Saldo Acumulado</th>
@@ -328,26 +406,36 @@
                     </table>
                 </div>
                 <script>
-                    window.loadMovements = async function () {
+                    window.loadMovements = async function (dateFrom = null, dateTo = null) {
                         try {
-                            const [patientsRes, incomesRes, expensesRes] = await Promise.all([
+                            const [patientsRes, incomesRes, expensesRes, clientsRes] = await Promise.all([
                                 fetch('/api/patient'),
                                 fetch('/api/income'),
-                                fetch('/api/expense')
+                                fetch('/api/expense'),
+                                fetch('/api/clientes')
                             ]);
 
                             const patients = await patientsRes.json();
                             const incomes = await incomesRes.json();
                             const expenses = await expensesRes.json();
+                            const clients = await clientsRes.json();
+
+                            // Create client lookup map
+                            const clientsLookup = {};
+                            clients.forEach(c => {
+                                clientsLookup[c.id] = c.razonSocial;
+                            });
 
                             let allMovements = [];
 
                             // Normalize Data
                             patients.forEach(p => {
+                                const clientName = p.clientId ? clientsLookup[p.clientId] || 'Cliente Desconocido' : (p.nombre || 'Sin Cliente');
                                 allMovements.push({
                                     date: new Date(p.fechaIngreso),
                                     type: 'Paciente',
-                                    description: p.nombre,
+                                    description: clientName,
+                                    motivo: p.motivoConsulta || '-',
                                     income: p.monto,
                                     expense: 0
                                 });
@@ -376,6 +464,13 @@
                             // Sort by Date
                             allMovements.sort((a, b) => a.date - b.date);
 
+                            // Filter by date range if provided
+                            if (dateFrom && dateTo) {
+                                allMovements = allMovements.filter(m => {
+                                    return m.date >= dateFrom && m.date <= dateTo;
+                                });
+                            }
+
                             const tbody = document.getElementById('movementsBody');
                             tbody.innerHTML = '';
                             let runningBalance = 0;
@@ -386,6 +481,7 @@
                                     <td style="padding: 4px 8px;">${m.date.toLocaleString('es-PY')}</td>
                                     <td style="padding: 4px 8px;">${m.type}</td>
                                     <td style="padding: 4px 8px;">${m.description}</td>
+                                    <td style="padding: 4px 8px;">${m.motivo || '-'}</td>
                                     <td style="padding: 4px 8px; color: ${m.income > 0 ? 'green' : 'inherit'}; text-align: right;">${m.income > 0 ? new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(m.income) : '-'}</td>
                                     <td style="padding: 4px 8px; color: ${m.expense > 0 ? 'red' : 'inherit'}; text-align: right;">${m.expense > 0 ? new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(m.expense) : '-'}</td>
                                     <td style="padding: 4px 8px; font-weight: bold; text-align: right;">${new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(runningBalance)}</td>
@@ -395,7 +491,43 @@
 
                             document.getElementById('totalCashBox').textContent = new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(runningBalance);
 
+                            // Store movements for export (unfiltered)
+                            if (!dateFrom && !dateTo) {
+                                allMovementsData = allMovements;
+                            }
+
                         } catch (e) { console.error("Error loading movements:", e); }
+                    }
+
+                    // Initialize movements tab with today's date
+                    window.initMovementsTab = function () {
+                        const today = new Date();
+                        const todayStr = today.toISOString().split('T')[0];
+
+                        document.getElementById('movementsDateFrom').value = todayStr;
+                        document.getElementById('movementsDateTo').value = todayStr;
+
+                        filterMovements();
+                    }
+
+                    // Filter movements by date range
+                    window.filterMovements = function () {
+                        const dateFromStr = document.getElementById('movementsDateFrom').value;
+                        const dateToStr = document.getElementById('movementsDateTo').value;
+
+                        if (!dateFromStr || !dateToStr) {
+                            showNotification('Por favor seleccione ambas fechas', 'warning');
+                            return;
+                        }
+
+                        // Create dates in local timezone
+                        const [yearFrom, monthFrom, dayFrom] = dateFromStr.split('-').map(Number);
+                        const dateFrom = new Date(yearFrom, monthFrom - 1, dayFrom, 0, 0, 0, 0);
+
+                        const [yearTo, monthTo, dayTo] = dateToStr.split('-').map(Number);
+                        const dateTo = new Date(yearTo, monthTo - 1, dayTo, 23, 59, 59, 999);
+
+                        loadMovements(dateFrom, dateTo);
                     }
                 </script>
             </div>
@@ -409,38 +541,16 @@
                     <h1>Gestión de Clientes</h1>
                     <p>Administración de base de datos de clientes</p>
                 </div>
+                <button class="btn-primary" onclick="openClientModal()">
+                    <i class="fas fa-plus"></i> Registrar Cliente
+                </button>
             </header>
 
-            <div class="form-container">
-                <h3>Nuevo Cliente</h3>
-                <form id="clientForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>RUC / CI</label>
-                            <input type="text" id="clientRuc" required placeholder="1234567-8">
-                        </div>
-                        <div class="form-group">
-                            <label>Razón Social</label>
-                            <input type="text" id="clientName" required placeholder="Nombre o Razón Social">
-                        </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="clientEmail" placeholder="cliente@email.com">
-                        </div>
-                        <div class="form-group">
-                            <label>Teléfono</label>
-                            <input type="text" id="clientPhone" placeholder="09XX...">
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Dirección</label>
-                            <input type="text" id="clientAddress" placeholder="Dirección completa">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary"
-                        style="width: 100%; justify-content: center; margin-top: 1rem;">
-                        Guardar Cliente
-                    </button>
-                </form>
+            <div
+                style="margin-bottom: 1rem; background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);">
+                <input type="text" id="clientSearchInput" placeholder="Buscar por RUC, nombre, email o teléfono..."
+                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;"
+                    oninput="filterClients()">
             </div>
 
             <div class="table-container">
@@ -472,6 +582,9 @@
         </div>
 
     </main>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 10000;"></div>
 
     <!-- Invoice Modal -->
     <div id="invoiceModal" class="modal-overlay">
@@ -533,10 +646,101 @@
         </div>
     </div>
 
+    <!-- Export Movements Modal -->
+    <div id="exportModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="close-modal" onclick="closeExportModal()">&times;</button>
+            <h2>Exportar Movimientos</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Desde</label>
+                    <input type="date" id="exportDateFrom" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Hasta</label>
+                    <input type="date" id="exportDateTo" class="form-control">
+                </div>
+            </div>
+            <div style="margin-top: 2rem; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-secondary" onclick="closeExportModal()">Cancelar</button>
+                <button class="btn-primary" onclick="executeExport()">
+                    <i class="fas fa-download"></i> Exportar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Registration Modal -->
+    <div id="clientModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeClientModal()">&times;</button>
+            <h2>Registrar Cliente</h2>
+            <form id="clientModalForm">
+                <input type="hidden" id="clientModalId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>RUC / CI</label>
+                        <input type="text" id="clientModalRuc" required placeholder="1234567-8">
+                    </div>
+                    <div class="form-group">
+                        <label>Razón Social</label>
+                        <input type="text" id="clientModalName" required placeholder="Nombre o Razón Social">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="clientModalEmail" placeholder="cliente@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="text" id="clientModalPhone" placeholder="09XX...">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Dirección</label>
+                        <input type="text" id="clientModalAddress" placeholder="Dirección completa">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="closeClientModal()"
+                        style="flex: 1;">Cancelar</button>
+                    <button type="submit" class="btn-primary" style="flex: 1;">Guardar Cliente</button>
+                    <button type="button" class="btn-primary" onclick="saveClientAndRegisterPatient()"
+                        style="flex: 1;">Guardar y Registrar Paciente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client Visit History Modal -->
+    <div id="clientVisitHistoryModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeVisitHistoryModal()">&times;</button>
+            <h2 id="visitHistoryClientName">Expediente del Cliente</h2>
+            <div style="margin-top: 1.5rem;">
+                <h3>Historial de Visitas</h3>
+                <div class="table-container" style="margin-top: 1rem;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Motivo de Visita</th>
+                                <th>Monto</th>
+                                <th>Saldo</th>
+                                <th>Observación</th>
+                            </tr>
+                        </thead>
+                        <tbody id="visitHistoryTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Global variables
         let clientsMap = {};
         let invoiceItems = [];
+        let allMovementsData = []; // Store movements for export
 
         // Navigation
         function showSection(id, link) {
@@ -568,41 +772,85 @@
             document.getElementById(tabName).style.display = "block";
             document.getElementById(tabName).classList.add("active");
             evt.currentTarget.className += " active";
+
+            if (tabName === 'tab-pacientes') initPatientsTab();
+            else if (tabName === 'tab-ingresos') initIncomesTab();
+            else if (tabName === 'tab-egresos') initExpensesTab();
         }
 
         // --- Data Loading Functions ---
 
         async function loadDailySummary() {
-            loadPatients();
-            loadIncomes();
-            loadExpenses();
+            initPatientsTab();
+            initIncomesTab();
+            initExpensesTab();
         }
 
-        async function loadPatients() {
+        async function loadPatients(dateFrom = null, dateTo = null) {
             try {
-                const res = await fetch('/api/patient');
-                if (!res.ok) throw new Error('Failed to load patients');
-                const data = await res.json();
+                const [patientsRes, clientsRes] = await Promise.all([
+                    fetch('/api/patient'),
+                    fetch('/api/clientes')
+                ]);
+                if (!patientsRes.ok) throw new Error('Failed to load patients');
+                let patients = await patientsRes.json();
+                const clients = await clientsRes.json();
+
+                // Create client lookup
+                const clientsLookup = {};
+                clients.forEach(c => {
+                    clientsLookup[c.id] = { nombre: c.razonSocial, telefono: c.telefono };
+                });
+
+                // Sort by date descending
+                patients.sort((a, b) => new Date(b.fechaIngreso) - new Date(a.fechaIngreso));
+
+                // Filter by date range
+                if (dateFrom && dateTo) {
+                    patients = patients.filter(p => {
+                        const pDate = new Date(p.fechaIngreso);
+                        return pDate >= dateFrom && pDate <= dateTo;
+                    });
+                }
+
                 const tbody = document.getElementById('patientTableBody');
                 tbody.innerHTML = '';
-                data.forEach(item => {
+                patients.forEach(item => {
+                    const nombre = item.clientId && clientsLookup[item.clientId]
+                        ? clientsLookup[item.clientId].nombre
+                        : (item.nombre || 'N/A');
+                    const telefono = item.clientId && clientsLookup[item.clientId]
+                        ? clientsLookup[item.clientId].telefono
+                        : (item.telefono || '-');
                     const row = `<tr>
                         <td>${formatDate(item.fechaIngreso)}</td>
-                        <td>${item.nombre}</td>
+                        <td>${nombre}</td>
+                        <td>${item.motivoConsulta || '-'}</td>
                         <td>${formatCurrency(item.monto)}</td>
                         <td>${formatCurrency(item.saldo)}</td>
-                        <td>${item.telefono}</td>
+                        <td>${telefono}</td>
                     </tr>`;
                     tbody.innerHTML += row;
                 });
             } catch (e) { console.error(e); }
         }
 
-        async function loadIncomes() {
+        async function loadIncomes(dateFrom = null, dateTo = null) {
             try {
                 const res = await fetch('/api/income');
                 if (!res.ok) throw new Error('Failed to load incomes');
-                const data = await res.json();
+                let data = await res.json();
+                // Sort by date descending
+                data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+                // Filter by date range
+                if (dateFrom && dateTo) {
+                    data = data.filter(i => {
+                        const iDate = new Date(i.fecha);
+                        return iDate >= dateFrom && iDate <= dateTo;
+                    });
+                }
+
                 const tbody = document.getElementById('incomeTableBody');
                 tbody.innerHTML = '';
                 data.forEach(item => {
@@ -617,11 +865,22 @@
             } catch (e) { console.error(e); }
         }
 
-        async function loadExpenses() {
+        async function loadExpenses(dateFrom = null, dateTo = null) {
             try {
                 const res = await fetch('/api/expense');
                 if (!res.ok) throw new Error('Failed to load expenses');
-                const data = await res.json();
+                let data = await res.json();
+                // Sort by date descending
+                data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+                // Filter by date range
+                if (dateFrom && dateTo) {
+                    data = data.filter(e => {
+                        const eDate = new Date(e.fecha);
+                        return eDate >= dateFrom && eDate <= dateTo;
+                    });
+                }
+
                 const tbody = document.getElementById('expenseTableBody');
                 tbody.innerHTML = '';
                 data.forEach(item => {
@@ -641,17 +900,18 @@
                 const res = await fetch('/api/clientes');
                 if (!res.ok) throw new Error('Failed to load clients');
                 const clients = await res.json();
+                allClientsData = clients;
                 const tbody = document.getElementById('clientsTableBody');
                 tbody.innerHTML = '';
                 clients.forEach(c => {
-                    const row = `<tr>
+                    const row = `<tr style="cursor: pointer;" onclick="openVisitHistory(${c.id}, '${c.razonSocial}')">
                         <td>${c.ruc}</td>
                         <td>${c.razonSocial}</td>
                         <td>${c.email || '-'}</td>
                         <td>${c.telefono || '-'}</td>
                         <td class="actions">
-                            <i class="fas fa-edit action-btn" title="Editar"></i>
-                            <i class="fas fa-trash action-btn action-delete" title="Eliminar"></i>
+                            <i class="fas fa-edit action-btn" title="Editar" onclick="event.stopPropagation(); editClient(${c.id})"></i>
+                            <i class="fas fa-trash action-btn action-delete" title="Eliminar" onclick="event.stopPropagation(); deleteClient(${c.id})"></i>
                         </td>
                     </tr>`;
                     tbody.innerHTML += row;
@@ -661,18 +921,69 @@
 
         // --- Form Submissions ---
 
+        window.editClient = function (id) {
+            const client = allClientsData.find(c => c.id === id);
+            if (client) {
+                document.getElementById('clientModalId').value = client.id;
+                document.getElementById('clientModalRuc').value = client.ruc;
+                document.getElementById('clientModalName').value = client.razonSocial;
+                document.getElementById('clientModalEmail').value = client.email || '';
+                document.getElementById('clientModalPhone').value = client.telefono || '';
+                document.getElementById('clientModalAddress').value = client.direccion || '';
+                openClientModal();
+            }
+        }
+
+        window.deleteClient = async function (id) {
+            if (confirm('¿Está seguro de eliminar este cliente?')) {
+                try {
+                    const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        showNotification('Cliente eliminado', 'success');
+                        loadClientsTable();
+                        loadClientsForPatientForm();
+                    } else {
+                        showNotification('Error al eliminar', 'error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showNotification('Error de conexión', 'error');
+                }
+            }
+        }
+
         document.getElementById('patientForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const clientId = document.getElementById('patientClientId').value;
+            const patientName = document.getElementById('patientName').value;
+            const patientPhone = document.getElementById('patientPhone').value;
+
+            // Validate: either client OR name+phone required
+            if (!clientId && !patientName) {
+                showNotification('Por favor seleccione un cliente o ingrese el nombre del paciente', 'warning');
+                return;
+            }
+
             const data = {
                 fechaIngreso: document.getElementById('patientDate').value,
-                nombre: document.getElementById('patientName').value,
                 monto: parseFloat(document.getElementById('patientAmount').value),
                 saldo: parseFloat(document.getElementById('patientBalance').value || 0),
-                telefono: document.getElementById('patientPhone').value,
-                observacion: document.getElementById('patientObservation').value
+                observacion: document.getElementById('patientObservation').value,
+                metodoPago: document.getElementById('patientPaymentMethod').value
             };
+
+            // Add client-specific or standalone patient fields
+            if (clientId) {
+                data.clientId = parseInt(clientId);
+                data.motivoConsulta = document.getElementById('patientVisitReason').value;
+            } else {
+                data.nombre = patientName;
+                data.telefono = patientPhone;
+            }
+
             await postData('/api/patient', data, loadPatients);
             e.target.reset();
+            document.getElementById('patientClientId').value = '';
         });
 
         document.getElementById('incomeForm').addEventListener('submit', async (e) => {
@@ -697,18 +1008,58 @@
             e.target.reset();
         });
 
-        document.getElementById('clientForm').addEventListener('submit', async (e) => {
+        document.getElementById('clientModalForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const data = {
-                ruc: document.getElementById('clientRuc').value,
-                razonSocial: document.getElementById('clientName').value,
-                email: document.getElementById('clientEmail').value,
-                telefono: document.getElementById('clientPhone').value,
-                direccion: document.getElementById('clientAddress').value
+                ruc: document.getElementById('clientModalRuc').value,
+                razonSocial: document.getElementById('clientModalName').value,
+                email: document.getElementById('clientModalEmail').value,
+                telefono: document.getElementById('clientModalPhone').value,
+                direccion: document.getElementById('clientModalAddress').value
             };
-            await postData('/api/clientes', data, loadClientsTable);
+            await postData('/api/clientes', data, () => {
+                loadClientsTable();
+                loadClientsForPatientForm();
+            });
             e.target.reset();
+            closeClientModal();
         });
+
+
+        // Save client and proceed to patient registration
+        async function saveClientAndRegisterPatient() {
+            const data = {
+                ruc: document.getElementById('clientModalRuc').value,
+                razonSocial: document.getElementById('clientModalName').value,
+                email: document.getElementById('clientModalEmail').value,
+                telefono: document.getElementById('clientModalPhone').value,
+                direccion: document.getElementById('clientModalAddress').value
+            };
+
+            const savedClient = await postData('/api/clientes', data, (responseData) => {
+                loadClientsTable();
+                loadClientsForPatientForm();
+            });
+
+            if (savedClient) {
+                // Close client modal
+                document.getElementById('clientModalForm').reset();
+                closeClientModal();
+
+                // Switch to Pacientes tab
+                showSection('inventario', document.querySelector('.nav-link'));
+                const tabBtn = document.querySelector('.tab-btn');
+                if (tabBtn) {
+                    openTab({ currentTarget: tabBtn }, 'tab-pacientes');
+                }
+
+                // Pre-fill patient form
+                document.getElementById('patientClientSearch').value = savedClient.ruc + ' - ' + savedClient.razonSocial;
+                document.getElementById('patientClientId').value = savedClient.id;
+                document.getElementById('patientName').value = savedClient.razonSocial;
+                document.getElementById('patientPhone').value = savedClient.telefono || '';
+            }
+        }
 
         // --- Helpers ---
 
@@ -720,14 +1071,19 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    alert('Guardado correctamente');
-                    if (callback) callback();
+                    const responseData = await res.json();
+                    showNotification('Guardado correctamente', 'success');
+                    if (callback) callback(responseData);
+                    return responseData;
                 } else {
-                    alert('Error al guardar');
+                    const errorText = await res.text();
+                    showNotification(errorText || 'Error al guardar', 'error');
+                    return null;
                 }
             } catch (e) {
                 console.error(e);
-                alert('Error de conexión');
+                showNotification('Error de conexión', 'error');
+                return null;
             }
         }
 
@@ -831,18 +1187,18 @@
                 });
 
                 if (res.ok) {
-                    alert('Factura emitida correctamente');
+                    showNotification('Factura emitida correctamente', 'success');
                     closeInvoiceModal();
                     invoiceItems = [];
                     renderInvoiceItems();
                     document.getElementById('ruc').value = '';
                     document.getElementById('razonSocial').value = '';
                 } else {
-                    alert('Error al emitir factura');
+                    showNotification('Error al emitir factura', 'error');
                 }
             } catch (e) {
                 console.error(e);
-                alert('Error de conexión');
+                showNotification('Error de conexión', 'error');
             }
         }
 
@@ -870,11 +1226,574 @@
             }
         });
 
+        // Client Modal Functions
+        window.openClientModal = function () {
+            document.getElementById('clientModal').classList.add('active');
+        }
+
+        window.closeClientModal = function () {
+            document.getElementById('clientModal').classList.remove('active');
+        }
+
+        // Visit History Modal Functions
+        window.openVisitHistory = async function (clientId, clientName) {
+            document.getElementById('visitHistoryClientName').textContent = `Expediente: ${clientName}`;
+            document.getElementById('clientVisitHistoryModal').classList.add('active');
+            await loadClientVisits(clientId);
+        }
+
+        window.closeVisitHistoryModal = function () {
+            document.getElementById('clientVisitHistoryModal').classList.remove('active');
+        }
+
+        async function loadClientVisits(clientId) {
+            try {
+                const res = await fetch('/api/patient');
+                const allPatients = await res.json();
+                const clientVisits = allPatients.filter(p => p.clientId === clientId);
+                const tbody = document.getElementById('visitHistoryTableBody');
+                tbody.innerHTML = '';
+                if (clientVisits.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #999;">No hay visitas registradas para este cliente</td></tr>';
+                    return;
+                }
+                clientVisits.forEach(visit => {
+                    const row = `<tr>
+                        <td>${formatDate(visit.fechaIngreso)}</td>
+                        <td>${visit.motivoConsulta || '-'}</td>
+                        <td>${formatCurrency(visit.monto)}</td>
+                        <td>${formatCurrency(visit.saldo)}</td>
+                        <td>${visit.observacion || '-'}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+
+
+
+
+
+
+
+
+
+            } catch (e) {
+                console.error("Error loading client visits:", e);
+                showNotification('Error al cargar el historial de visitas', 'error');
+            }
+        }
+
+        // Client Search Filter
+        let allClientsData = [];
+        window.filterClients = function () {
+            const searchTerm = document.getElementById('clientSearchInput').value.toLowerCase();
+            const tbody = document.getElementById('clientsTableBody');
+            tbody.innerHTML = '';
+            const filtered = allClientsData.filter(c => {
+                return (c.ruc && c.ruc.toLowerCase().includes(searchTerm)) ||
+                    (c.razonSocial && c.razonSocial.toLowerCase().includes(searchTerm)) ||
+                    (c.email && c.email.toLowerCase().includes(searchTerm)) ||
+                    (c.telefono && c.telefono.toLowerCase().includes(searchTerm));
+            });
+            filtered.forEach(c => {
+                const row = `< tr style = "cursor: pointer;" onclick = "openVisitHistory(${c.id}, '${c.razonSocial}')" >
+                    <td>${c.ruc}</td>
+                    <td>${c.razonSocial}</td>
+                    <td>${c.email || '-'}</td>
+                    <td>${c.telefono || '-'}</td>
+                    <td class="actions">
+                        <i class="fas fa-edit action-btn" title="Editar" onclick="event.stopPropagation(); editClient(${c.id})"></i>
+                        <i class="fas fa-trash action-btn action-delete" title="Eliminar" onclick="event.stopPropagation(); deleteClient(${c.id})"></i>
+                    </td>
+                </tr >`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Load clients for patient form autocomplete
+        let patientClientsMap = {};
+        async function loadClientsForPatientForm() {
+            try {
+                const res = await fetch('/api/clientes');
+                const clients = await res.json();
+                const datalist = document.getElementById('patientClientList');
+                datalist.innerHTML = '';
+                patientClientsMap = {};
+                clients.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c.ruc;
+                    datalist.appendChild(option);
+                    patientClientsMap[c.ruc] = c;
+                });
+            } catch (e) { console.error("Error loading clients for patient form:", e); }
+        }
+
+        // Patient client search handler
+        document.getElementById('patientClientSearch').addEventListener('input', function (e) {
+            const val = e.target.value;
+            if (patientClientsMap[val]) {
+                const client = patientClientsMap[val];
+                document.getElementById('patientClientId').value = client.id;
+                document.getElementById('patientName').value = client.razonSocial;
+                document.getElementById('patientPhone').value = client.telefono || '';
+            } else {
+                document.getElementById('patientClientId').value = '';
+                document.getElementById('patientName').value = '';
+                document.getElementById('patientPhone').value = '';
+            }
+        });
+
         // Initial Load
         document.addEventListener('DOMContentLoaded', () => {
             loadDailySummary();
+            loadClientsForPatientForm();
         });
 
+    </script>
+
+    <script>
+        // Export Modal Functions
+        function openExportModal() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('exportDateFrom').value = today;
+            document.getElementById('exportDateTo').value = today;
+            document.getElementById('exportModal').classList.add('active');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        async function executeExport() {
+            // Get date strings from inputs (format: YYYY-MM-DD)
+            const dateFromStr = document.getElementById('exportDateFrom').value;
+            const dateToStr = document.getElementById('exportDateTo').value;
+
+            // Create dates in local timezone by parsing string components
+            const [yearFrom, monthFrom, dayFrom] = dateFromStr.split('-').map(Number);
+            const dateFrom = new Date(yearFrom, monthFrom - 1, dayFrom, 0, 0, 0, 0);
+
+            const [yearTo, monthTo, dayTo] = dateToStr.split('-').map(Number);
+            const dateTo = new Date(yearTo, monthTo - 1, dayTo, 23, 59, 59, 999);
+
+            if (!allMovementsData || allMovementsData.length === 0) {
+                await loadMovements();
+            }
+
+            const filteredMovements = allMovementsData.filter(m => {
+                return m.date >= dateFrom && m.date <= dateTo;
+            });
+
+            if (filteredMovements.length === 0) {
+                showNotification('No hay movimientos en el rango de fechas seleccionado', 'warning');
+                return;
+            }
+
+            const excelData = [];
+            let runningBalance = 0;
+
+            filteredMovements.forEach(m => {
+                runningBalance += (m.income - m.expense);
+                excelData.push({
+                    'Fecha': m.date.toLocaleString('es-PY'),
+                    'Tipo': m.type,
+                    'Descripción': m.description,
+                    'Motivo': m.motivo || '-',
+                    'Ingreso': m.income > 0 ? m.income.toLocaleString('es-PY') + ' Gs.' : '',
+                    'Egreso': m.expense > 0 ? m.expense.toLocaleString('es-PY') + ' Gs.' : '',
+                    'Saldo Acumulado': runningBalance.toLocaleString('es-PY') + ' Gs.'
+                });
+            });
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Movimientos');
+
+            const fromStr = document.getElementById('exportDateFrom').value;
+            const toStr = document.getElementById('exportDateTo').value;
+            const filename = `Movimientos_${fromStr}_${toStr}.xlsx`;
+
+            XLSX.writeFile(wb, filename);
+
+            closeExportModal();
+            showNotification(`Archivo exportado: ${filename} `, 'success');
+        }
+
+        // Custom Notification System
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+
+            const colors = {
+                success: '#00c853',
+                error: '#f44336',
+                warning: '#ff9800',
+                info: '#2196F3'
+            };
+
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+
+            notification.style.cssText = `
+                background: white;
+                border - left: 4px solid ${colors[type]};
+                padding: 16px 20px;
+                margin - bottom: 10px;
+                border - radius: 4px;
+                box - shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align - items: center;
+                gap: 12px;
+                min - width: 300px;
+                max - width: 400px;
+                animation: slideIn 0.3s ease;
+                `;
+
+            notification.innerHTML = `
+                <i class="fas ${icons[type]}" style="color: ${colors[type]}; font-size: 20px;"></i>
+                <span style="flex: 1; color: #333; font-size: 14px;">${message}</span>
+                <i class="fas fa-times" style="color: #999; cursor: pointer; font-size: 16px;" onclick="this.parentElement.remove()"></i>
+            `;
+
+            container.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+    </script>
+
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                (c.email && c.email.toLowerCase().includes(searchTerm)) || (c.telefono && c.telefono.toLowerCase().includes(searchTerm));
+            });
+
+            filtered.forEach(c=> {
+                    const row=`<tr style="cursor: pointer;" onclick="openVisitHistory(${c.id}, '${c.razonSocial}')" > <td>$ {
+                        c.ruc
+                    }
+
+                    </td> <td>$ {
+                        c.razonSocial
+                    }
+
+                    </td> <td>$ {
+                        c.email || '-'
+                    }
+
+                    </td> <td>$ {
+                        c.telefono || '-'
+                    }
+
+                    </td> <td class="actions" > <i class="fas fa-edit action-btn" title="Editar" onclick="event.stopPropagation(); editClient(${c.id})" ></i> <i class="fas fa-trash action-btn action-delete" title="Eliminar" onclick="event.stopPropagation(); deleteClient(${c.id})" ></i> </td> </tr>`;
+                    tbody.innerHTML +=row;
+                });
+        }
+
+        // Load clients for patient form autocomplete
+        let patientClientsMap= {}
+
+        ;
+
+        async function loadClientsForPatientForm() {
+            try {
+                const res=await fetch('/api/clientes');
+                const clients=await res.json();
+                const datalist=document.getElementById('patientClientList');
+                datalist.innerHTML='';
+
+                patientClientsMap= {}
+
+                ;
+
+                clients.forEach(c=> {
+                        const option=document.createElement('option');
+                        option.value=c.ruc;
+                        datalist.appendChild(option);
+                        patientClientsMap[c.ruc]=c;
+                    });
+            }
+
+            catch (e) {
+                console.error("Error loading clients for patient form:", e);
+            }
+        }
+
+        // Patient client search handler
+        document.getElementById('patientClientSearch').addEventListener('input', function (e) {
+                const val=e.target.value;
+
+                if (patientClientsMap[val]) {
+                    const client=patientClientsMap[val];
+                    document.getElementById('patientClientId').value=client.id;
+                    document.getElementById('patientName').value=client.razonSocial;
+                    document.getElementById('patientPhone').value=client.telefono || '';
+                }
+
+                else {
+                    document.getElementById('patientClientId').value='';
+                    document.getElementById('patientName').value='';
+                    document.getElementById('patientPhone').value='';
+                }
+            });
+
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', ()=> {
+                loadDailySummary();
+                loadClientsForPatientForm();
+            });
+
+        </script><script> // Export Modal Functions
+
+        function openExportModal() {
+            const today=new Date().toISOString().split('T')[0];
+            document.getElementById('exportDateFrom').value=today;
+            document.getElementById('exportDateTo').value=today;
+            document.getElementById('exportModal').classList.add('active');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        async function executeExport() {
+            // Get date strings from inputs (format: YYYY-MM-DD)
+            const dateFromStr=document.getElementById('exportDateFrom').value;
+            const dateToStr=document.getElementById('exportDateTo').value;
+
+            // Create dates in local timezone by parsing string components
+            const [yearFrom,
+            monthFrom,
+            dayFrom]=dateFromStr.split('-').map(Number);
+            const dateFrom=new Date(yearFrom, monthFrom - 1, dayFrom, 0, 0, 0, 0);
+
+            const [yearTo,
+            monthTo,
+            dayTo]=dateToStr.split('-').map(Number);
+            const dateTo=new Date(yearTo, monthTo - 1, dayTo, 23, 59, 59, 999);
+
+            if ( !allMovementsData || allMovementsData.length===0) {
+                await loadMovements();
+            }
+
+            const filteredMovements=allMovementsData.filter(m=> {
+                    return m.date >=dateFrom && m.date <=dateTo;
+                });
+
+            if (filteredMovements.length===0) {
+                showNotification('No hay movimientos en el rango de fechas seleccionado', 'warning');
+                return;
+            }
+
+            const excelData=[];
+            let runningBalance=0;
+
+            filteredMovements.forEach(m=> {
+                    runningBalance +=(m.income - m.expense);
+
+                    excelData.push({
+                        'Fecha': m.date.toLocaleString('es-PY'),
+                        'Tipo': m.type,
+                        'Descripción': m.description,
+                        'Ingreso': m.income > 0 ? m.income.toLocaleString('es-PY') + ' Gs.' : '',
+                        'Egreso': m.expense > 0 ? m.expense.toLocaleString('es-PY') + ' Gs.' : '',
+                        'Saldo Acumulado': runningBalance.toLocaleString('es-PY') + ' Gs.'
+                    });
+            });
+
+        const ws=XLSX.utils.json_to_sheet(excelData);
+        const wb=XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Movimientos');
+
+        const fromStr=document.getElementById('exportDateFrom').value;
+        const toStr=document.getElementById('exportDateTo').value;
+
+        const filename=`Movimientos_$ {
+            fromStr
+        }
+
+        _$ {
+            toStr
+        }
+
+        .xlsx`;
+
+        XLSX.writeFile(wb, filename);
+
+        closeExportModal();
+
+        showNotification(`Archivo exportado: $ {
+                filename
+            }
+
+            `, 'success');
+        }
+
+        // Custom Notification System
+        function showNotification(message, type='info') {
+            const container=document.getElementById('notificationContainer');
+            const notification=document.createElement('div');
+
+            const colors= {
+                success: '#00c853',
+                    error: '#f44336',
+                    warning: '#ff9800',
+                    info: '#2196F3'
+            }
+
+            ;
+
+            const icons= {
+                success: 'fa-check-circle',
+                    error: 'fa-times-circle',
+                    warning: 'fa-exclamation-triangle',
+                    info: 'fa-info-circle'
+            }
+
+            ;
+
+            notification.style.cssText=` background: white;
+
+            border-left: 4px solid $ {
+                colors[type]
+            }
+
+            ;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+            `;
+
+            notification.innerHTML=` <i class="fas ${icons[type]}" style="color: ${colors[type]}; font-size: 20px;"></i><span style="flex: 1; color: #333; font-size: 14px;">$ {
+                message
+            }
+
+            </span><i class="fas fa-times" style="color: #999; cursor: pointer; font-size: 16px;" onclick="this.parentElement.remove()"></i>`;
+
+            container.appendChild(notification);
+
+            setTimeout(()=> {
+                    notification.style.animation='slideOut 0.3s ease';
+                    setTimeout(()=> notification.remove(), 300);
+                }
+
+                , 5000);
+        }
+
+        </script><style>@keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    </style>
+    <script>
+        // --- Date Filter Initialization and Logic ---
+
+        function getTodayDateString() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year} -${month} -${day}`;
+        }
+
+        function getDateRangeFromInputs(idFrom, idTo) {
+            const fromStr = document.getElementById(idFrom).value;
+            const toStr = document.getElementById(idTo).value;
+
+            if (!fromStr || !toStr) return [null, null];
+
+            const [yFrom, mFrom, dFrom] = fromStr.split('-').map(Number);
+            const dateFrom = new Date(yFrom, mFrom - 1, dFrom, 0, 0, 0, 0);
+
+            const [yTo, mTo, dTo] = toStr.split('-').map(Number);
+            const dateTo = new Date(yTo, mTo - 1, dTo, 23, 59, 59, 999);
+
+            return [dateFrom, dateTo];
+        }
+
+        function initPatientsTab() {
+            const today = getTodayDateString();
+            document.getElementById('patientsDateFrom').value = today;
+            document.getElementById('patientsDateTo').value = today;
+            filterPatients();
+        }
+
+        function filterPatients() {
+            const [dateFrom, dateTo] = getDateRangeFromInputs('patientsDateFrom', 'patientsDateTo');
+            loadPatients(dateFrom, dateTo);
+        }
+
+        function initIncomesTab() {
+            const today = getTodayDateString();
+            document.getElementById('incomesDateFrom').value = today;
+            document.getElementById('incomesDateTo').value = today;
+            filterIncomes();
+        }
+
+        function filterIncomes() {
+            const [dateFrom, dateTo] = getDateRangeFromInputs('incomesDateFrom', 'incomesDateTo');
+            loadIncomes(dateFrom, dateTo);
+        }
+
+        function initExpensesTab() {
+            const today = getTodayDateString();
+            document.getElementById('expensesDateFrom').value = today;
+            document.getElementById('expensesDateTo').value = today;
+            filterExpenses();
+        }
+
+        function filterExpenses() {
+            const [dateFrom, dateTo] = getDateRangeFromInputs('expensesDateFrom', 'expensesDateTo');
+            loadExpenses(dateFrom, dateTo);
+        }
     </script>
 </body>
 
