@@ -372,6 +372,8 @@ tr:hover td {
     background: white;
     width: 90%;
     max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
     border-radius: 16px;
     padding: 2.5rem;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);

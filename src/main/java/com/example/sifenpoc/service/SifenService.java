@@ -23,9 +23,10 @@ public class SifenService {
 
     private String generarXmlSimulado(FacturaDTO dto) {
         // In a real scenario, we would use the library objects here.
-        // For this POC simulation without the library's full context/javadocs available,
+        // For this POC simulation without the library's full context/javadocs
+        // available,
         // we construct a basic XML representing the invoice.
-        
+
         return """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <rDE xmlns="http://ekuatia.set.gov.py/sifen/xsd">

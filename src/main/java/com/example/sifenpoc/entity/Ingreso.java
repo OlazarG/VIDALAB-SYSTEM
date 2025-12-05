@@ -14,6 +14,8 @@ public class Ingreso {
     private LocalDateTime fecha;
     private Double monto;
     private String observacion;
+    private String usuario; // Usuario que registró el ingreso
+    private String tipo; // VENTA, CAJA_CHICA
 
     public Ingreso() {
     }
@@ -54,5 +56,21 @@ public class Ingreso {
 
     public void setObservacion(String observacion) {
         this.observacion = observacion;
+    }
+
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 }

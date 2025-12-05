@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/patient")
 public class PacienteController {
@@ -20,7 +22,13 @@ public class PacienteController {
     }
 
     @PostMapping
-    public Paciente create(@RequestBody Paciente paciente) {
+    public Paciente create(@RequestBody Paciente paciente, Principal principal) {
+        if (principal != null) {
+            paciente.setUsuario(principal.getName());
+        }
+        System.out.println("Received Paciente: " + paciente.getNombre());
+        System.out.println("ClientId: " + paciente.getClientId());
+        System.out.println("Usuario: " + paciente.getUsuario());
         return repository.save(paciente);
     }
 }

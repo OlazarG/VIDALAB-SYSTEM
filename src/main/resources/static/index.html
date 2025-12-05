@@ -36,19 +36,11 @@
                     <i class="fas fa-users"></i> Clientes
                 </a>
             </li>
+
+
             <li class="nav-item">
-                <a class="nav-link" onclick="showSection('facturacion', this)">
-                    <i class="fas fa-file-invoice"></i> Facturación
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" onclick="showSection('reportes', this)">
-                    <i class="fas fa-chart-bar"></i> Reportes
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" onclick="showSection('config', this)">
-                    <i class="fas fa-cog"></i> Config. SIN
+                <a class="nav-link" onclick="showSection('usuarios', this)">
+                    <i class="fas fa-user-shield"></i> Usuarios
                 </a>
             </li>
         </ul>
@@ -64,9 +56,18 @@
                     <h1>Facturación Electrónica</h1>
                     <p>Emisión y gestión de facturas</p>
                 </div>
-                <button class="btn-primary" onclick="openModal()">
-                    <i class="fas fa-plus"></i> Nueva Factura
-                </button>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <span id="currentUserDisplay" style="font-weight: 500; font-size: 0.9em; color: #555;"></span>
+                    <form action="/logout" method="post" style="margin: 0;">
+                        <button type="submit" class="btn-secondary"
+                            style="background: #e74c3c; color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; font-size: 0.9em;">
+                            <i class="fas fa-sign-out-alt"></i> Salir
+                        </button>
+                    </form>
+                    <button class="btn-primary" onclick="openModal()">
+                        <i class="fas fa-plus"></i> Nueva Factura
+                    </button>
+                </div>
             </header>
 
             <!-- Dashboard Cards -->
@@ -276,261 +277,369 @@
                         </button>
                     </form>
                 </div>
-                <div class="table-container">
-                    <h3>Últimos Ingresos</h3>
-                    <div
-                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
-                        <label style="font-weight: 500;">Desde:</label>
-                        <input type="date" id="incomesDateFrom"
-                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                        <label style="font-weight: 500;">Hasta:</label>
-                        <input type="date" id="incomesDateTo"
-                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                        <button class="btn-primary" onclick="filterIncomes()"
-                            style="padding: 6px 16px; font-size: 0.9em;">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Concepto</th>
-                                <th>Monto</th>
-                                <th>Observación</th>
-                            </tr>
-                        </thead>
-                        <tbody id="incomeTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab Egresos -->
-            <div id="tab-egresos" class="tab-content">
-                <div class="form-container">
-                    <h3>Registro de Egresos</h3>
-                    <form id="expenseForm">
+                <div class="form-container" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+                    <h3>Apertura de Caja Chica</h3>
+                    <form id="pettyCashForm">
                         <div class="form-grid">
                             <div class="form-group">
                                 <label>Fecha</label>
-                                <input type="datetime-local" id="expenseDate" required>
+                                <input type="datetime-local" id="pettyCashDate" required>
                             </div>
                             <div class="form-group">
-                                <label>Concepto</label>
-                                <input type="text" id="expenseConcept" required placeholder="Ej: Pago de luz">
+                                <label>Monto Inicial (Gs)</label>
+                                <input type="number" id="pettyCashAmount" required placeholder="0">
                             </div>
-                            <div class="form-group">
-                                <label>Monto (Gs)</label>
-                                <input type="number" id="expenseAmount" required placeholder="0">
-                            </div>
-                            <div class="form-group">
-                                <label>Categoría</label>
-                                <select id="expenseCategory" class="form-control">
-                                    <option value="Operativo">Operativo</option>
-                                    <option value="Administrativo">Administrativo</option>
-                                    <option value="Insumos">Insumos</option>
-                                    <option value="Otros">Otros</option>
-                                </select>
+                            <div class="form-group full-width">
+                                <label>Observación</label>
+                                <input type="text" id="pettyCashObservation" value="Apertura de Caja">
                             </div>
                         </div>
                         <button type="submit" class="btn-primary"
-                            style="width: 100%; justify-content: center; margin-top: 1rem;">
-                            Registrar Egreso
+                            style="width: 100%; justify-content: center; margin-top: 1rem; background-color: #28a745;">
+                            Registrar Apertura Caja
                         </button>
                     </form>
                 </div>
-                <div class="table-container">
-                    <h3>Últimos Egresos</h3>
-                    <div
-                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
-                        <label style="font-weight: 500;">Desde:</label>
-                        <input type="date" id="expensesDateFrom"
-                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                        <label style="font-weight: 500;">Hasta:</label>
-                        <input type="date" id="expensesDateTo"
-                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                        <button class="btn-primary" onclick="filterExpenses()"
-                            style="padding: 6px 16px; font-size: 0.9em;">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Concepto</th>
-                                <th>Monto</th>
-                                <th>Categoría</th>
-                            </tr>
-                        </thead>
-                        <tbody id="expenseTableBody"></tbody>
-                    </table>
+            </div>
+            <div class="table-container">
+                <h3>Últimos Ingresos</h3>
+                <div
+                    style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                    <label style="font-weight: 500;">Desde:</label>
+                    <input type="date" id="incomesDateFrom"
+                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                    <label style="font-weight: 500;">Hasta:</label>
+                    <input type="date" id="incomesDateTo"
+                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                    <button class="btn-primary" onclick="filterIncomes()" style="padding: 6px 16px; font-size: 0.9em;">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
                 </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Concepto</th>
+                            <th>Monto</th>
+                            <th>Observación</th>
+                        </tr>
+                    </thead>
+                    <tbody id="incomeTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab Egresos -->
+        <div id="tab-egresos" class="tab-content">
+            <div class="form-container">
+                <h3>Registro de Egresos</h3>
+                <form id="expenseForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="datetime-local" id="expenseDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Concepto</label>
+                            <input type="text" id="expenseConcept" required placeholder="Ej: Pago de luz">
+                        </div>
+                        <div class="form-group">
+                            <label>Monto (Gs)</label>
+                            <input type="number" id="expenseAmount" required placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Categoría</label>
+                            <select id="expenseCategory" class="form-control">
+                                <option value="Operativo">Operativo</option>
+                                <option value="Administrativo">Administrativo</option>
+                                <option value="Insumos">Insumos</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary"
+                        style="width: 100%; justify-content: center; margin-top: 1rem;">
+                        Registrar Egreso
+                    </button>
+                </form>
+            </div>
+            <div class="table-container">
+                <h3>Últimos Egresos</h3>
+                <div
+                    style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                    <label style="font-weight: 500;">Desde:</label>
+                    <input type="date" id="expensesDateFrom"
+                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                    <label style="font-weight: 500;">Hasta:</label>
+                    <input type="date" id="expensesDateTo"
+                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                    <button class="btn-primary" onclick="filterExpenses()" style="padding: 6px 16px; font-size: 0.9em;">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Concepto</th>
+                            <th>Monto</th>
+                            <th>Categoría</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab Planilla de Movimientos -->
+        <div id="tab-movimientos" class="tab-content">
+            <div class="table-container" style="padding: 0; border: 1px solid #ccc; border-radius: 4px;">
+                <div
+                    style="background: #e0e0e0; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+                    <span>Planilla General de Movimientos</span>
+                    <div style="display: flex; gap: 15px;">
+                        <div
+                            style="background: #e3f2fd; padding: 5px 10px; border-radius: 8px; border: 1px solid #bbdefb;">
+                            <span style="color: #1565c0; font-size: 0.9em;">
+                                Caja Chica: <span id="totalPettyCash">0 ₲</span>
+                            </span>
+                        </div>
+                        <div
+                            style="background: #fff3e0; padding: 5px 10px; border-radius: 8px; border: 1px solid #ffe0b2;">
+                            <span style="color: #e65100; font-size: 0.9em;">
+                                Recaudación: <span id="totalRevenue">0 ₲</span>
+                            </span>
+                        </div>
+                        <div
+                            style="background: #e8f5e9; padding: 5px 10px; border-radius: 8px; border: 1px solid #c8e6c9;">
+                            <span style="font-size: 1.1em; color: #2e7d32;">
+                                Total: <span id="totalCashBox">0 ₲</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center;">
+                    <label style="font-weight: 500;">Desde:</label>
+                    <input type="date" id="movementsDateFrom"
+                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                    <label style="font-weight: 500;">Hasta:</label>
+                    <input type="date" id="movementsDateTo"
+                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                    <button class="btn-primary" onclick="filterMovements()"
+                        style="padding: 6px 16px; font-size: 0.9em;">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </div>
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Descripción / Nombre</th>
+                            <th>Motivo</th>
+                            <th>Usuario</th>
+                            <th>Ingreso</th>
+                            <th>Egreso</th>
+                            <th>Saldo Acumulado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movementsBody"></tbody>
+                </table>
             </div>
 
-            <!-- Tab Planilla de Movimientos -->
-            <div id="tab-movimientos" class="tab-content">
-                <div class="table-container" style="padding: 0; border: 1px solid #ccc; border-radius: 4px;">
-                    <div
-                        style="background: #e0e0e0; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
-                        <span>Planilla General de Movimientos</span>
-                        <span style="font-size: 1.2em;">Total en Caja: <span id="totalCashBox" style="color: #00c853;">0
-                                Gs</span></span>
-                    </div>
-                    <div
-                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center;">
-                        <label style="font-weight: 500;">Desde:</label>
-                        <input type="date" id="movementsDateFrom"
-                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                        <label style="font-weight: 500;">Hasta:</label>
-                        <input type="date" id="movementsDateTo"
-                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                        <button class="btn-primary" onclick="filterMovements()"
-                            style="padding: 6px 16px; font-size: 0.9em;">
-                            <i class="fas fa-filter"></i> Filtrar
-                        </button>
-                    </div>
-                    <table class="excel-table">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Tipo</th>
-                                <th>Descripción / Nombre</th>
-                                <th>Motivo</th>
-                                <th>Ingreso</th>
-                                <th>Egreso</th>
-                                <th>Saldo Acumulado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="movementsBody"></tbody>
-                    </table>
-                </div>
-                <script>
-                    window.loadMovements = async function (dateFrom = null, dateTo = null) {
-                        try {
-                            const [patientsRes, incomesRes, expensesRes, clientsRes] = await Promise.all([
-                                fetch('/api/patient'),
-                                fetch('/api/income'),
-                                fetch('/api/expense'),
-                                fetch('/api/clientes')
-                            ]);
+            <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">Planilla de Pacientes</h3>
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; border-radius: 4px;">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Motivo</th>
+                            <th>Usuario</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsBody"></tbody>
+                </table>
+            </div>
+            <script>
+                window.loadMovements = async function (dateFrom = null, dateTo = null) {
+                    try {
+                        const [patientsRes, incomesRes, expensesRes, clientsRes] = await Promise.all([
+                            fetch('/api/patient'),
+                            fetch('/api/income'),
+                            fetch('/api/expense'),
+                            fetch('/api/clientes')
+                        ]);
 
-                            const patients = await patientsRes.json();
-                            const incomes = await incomesRes.json();
-                            const expenses = await expensesRes.json();
-                            const clients = await clientsRes.json();
+                        const patients = await patientsRes.json();
+                        const incomes = await incomesRes.json();
+                        const expenses = await expensesRes.json();
+                        const clients = await clientsRes.json();
 
-                            // Create client lookup map
-                            const clientsLookup = {};
-                            clients.forEach(c => {
-                                clientsLookup[c.id] = c.razonSocial;
+                        // Create client lookup map
+                        const clientsLookup = {};
+                        clients.forEach(c => {
+                            clientsLookup[c.id] = c.razonSocial;
+                        });
+
+                        let allMovements = [];
+
+                        // Normalize Data
+                        patients.forEach(p => {
+                            const clientName = p.clientId ? clientsLookup[p.clientId] || 'Cliente Desconocido' : (p.nombre || 'Sin Cliente');
+                            allMovements.push({
+                                date: new Date(p.fechaIngreso),
+                                type: 'Ingreso',
+                                category: 'VENTA',
+                                description: clientName,
+                                motivo: p.motivoConsulta || '-',
+                                usuario: p.usuario || 'Sistema',
+                                income: p.monto,
+                                expense: 0
                             });
+                        });
 
-                            let allMovements = [];
-
-                            // Normalize Data
-                            patients.forEach(p => {
-                                const clientName = p.clientId ? clientsLookup[p.clientId] || 'Cliente Desconocido' : (p.nombre || 'Sin Cliente');
-                                allMovements.push({
-                                    date: new Date(p.fechaIngreso),
-                                    type: 'Paciente',
-                                    description: clientName,
-                                    motivo: p.motivoConsulta || '-',
-                                    income: p.monto,
-                                    expense: 0
-                                });
+                        incomes.forEach(i => {
+                            allMovements.push({
+                                date: new Date(i.fecha),
+                                type: i.tipo === 'CAJA_CHICA' ? 'Caja Chica' : 'Otro Ingreso',
+                                category: i.tipo || 'VENTA',
+                                description: i.observacion,
+                                usuario: i.usuario || 'Sistema',
+                                income: i.monto,
+                                expense: 0
                             });
+                        });
 
-                            incomes.forEach(i => {
-                                allMovements.push({
-                                    date: new Date(i.fecha),
-                                    type: 'Otro Ingreso',
-                                    description: i.observacion,
-                                    income: i.monto,
-                                    expense: 0
-                                });
+                        expenses.forEach(e => {
+                            allMovements.push({
+                                date: new Date(e.fecha),
+                                type: 'Egreso',
+                                category: 'EGRESO',
+                                description: e.beneficiario,
+                                usuario: e.usuario || 'Sistema',
+                                income: 0,
+                                expense: e.monto
                             });
+                        });
 
-                            expenses.forEach(e => {
-                                allMovements.push({
-                                    date: new Date(e.fecha),
-                                    type: 'Egreso',
-                                    description: e.beneficiario,
-                                    income: 0,
-                                    expense: e.monto
-                                });
+                        // Sort by Date
+                        allMovements.sort((a, b) => a.date - b.date);
+
+                        // Filter by date range if provided
+                        if (dateFrom && dateTo) {
+                            allMovements = allMovements.filter(m => {
+                                return m.date >= dateFrom && m.date <= dateTo;
                             });
+                        }
 
-                            // Sort by Date
-                            allMovements.sort((a, b) => a.date - b.date);
+                        const tbody = document.getElementById('movementsBody');
+                        tbody.innerHTML = '';
+                        let runningBalance = 0;
+                        let pettyCashTotal = 0;
+                        let revenueTotal = 0;
 
-                            // Filter by date range if provided
-                            if (dateFrom && dateTo) {
-                                allMovements = allMovements.filter(m => {
-                                    return m.date >= dateFrom && m.date <= dateTo;
-                                });
+                        allMovements.forEach(m => {
+                            runningBalance += (m.income - m.expense);
+
+                            if (m.category === 'CAJA_CHICA') {
+                                pettyCashTotal += m.income;
+                            } else if (m.category === 'VENTA') {
+                                revenueTotal += m.income;
                             }
 
-                            const tbody = document.getElementById('movementsBody');
-                            tbody.innerHTML = '';
-                            let runningBalance = 0;
-
-                            allMovements.forEach(m => {
-                                runningBalance += (m.income - m.expense);
-                                const row = `<tr>
+                            const row = `<tr>
                                     <td style="padding: 4px 8px;">${m.date.toLocaleString('es-PY')}</td>
                                     <td style="padding: 4px 8px;">${m.type}</td>
                                     <td style="padding: 4px 8px;">${m.description}</td>
                                     <td style="padding: 4px 8px;">${m.motivo || '-'}</td>
+                                    <td style="padding: 4px 8px;">${m.usuario}</td>
                                     <td style="padding: 4px 8px; color: ${m.income > 0 ? 'green' : 'inherit'}; text-align: right;">${m.income > 0 ? new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(m.income) : '-'}</td>
                                     <td style="padding: 4px 8px; color: ${m.expense > 0 ? 'red' : 'inherit'}; text-align: right;">${m.expense > 0 ? new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(m.expense) : '-'}</td>
                                     <td style="padding: 4px 8px; font-weight: bold; text-align: right;">${new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(runningBalance)}</td>
                                 </tr>`;
-                                tbody.innerHTML += row;
+                            tbody.innerHTML += row;
+                        });
+
+                        // Update Totals
+                        if (document.getElementById('totalPettyCash')) document.getElementById('totalPettyCash').textContent = new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(pettyCashTotal);
+                        if (document.getElementById('totalRevenue')) document.getElementById('totalRevenue').textContent = new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(revenueTotal);
+
+                        // --- Populate Patients Table ---
+                        const patientsTbody = document.getElementById('patientsBody');
+                        patientsTbody.innerHTML = '';
+
+                        // reuse 'patients' array fetched above
+                        let filteredPatients = patients;
+
+                        // Filter by date range if provided
+                        if (dateFrom && dateTo) {
+                            filteredPatients = filteredPatients.filter(p => {
+                                const pDate = new Date(p.fechaIngreso);
+                                return pDate >= dateFrom && pDate <= dateTo;
                             });
-
-                            document.getElementById('totalCashBox').textContent = new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(runningBalance);
-
-                            // Store movements for export (unfiltered)
-                            if (!dateFrom && !dateTo) {
-                                allMovementsData = allMovements;
-                            }
-
-                        } catch (e) { console.error("Error loading movements:", e); }
-                    }
-
-                    // Initialize movements tab with today's date
-                    window.initMovementsTab = function () {
-                        const today = new Date();
-                        const todayStr = today.toISOString().split('T')[0];
-
-                        document.getElementById('movementsDateFrom').value = todayStr;
-                        document.getElementById('movementsDateTo').value = todayStr;
-
-                        filterMovements();
-                    }
-
-                    // Filter movements by date range
-                    window.filterMovements = function () {
-                        const dateFromStr = document.getElementById('movementsDateFrom').value;
-                        const dateToStr = document.getElementById('movementsDateTo').value;
-
-                        if (!dateFromStr || !dateToStr) {
-                            showNotification('Por favor seleccione ambas fechas', 'warning');
-                            return;
                         }
 
-                        // Create dates in local timezone
-                        const [yearFrom, monthFrom, dayFrom] = dateFromStr.split('-').map(Number);
-                        const dateFrom = new Date(yearFrom, monthFrom - 1, dayFrom, 0, 0, 0, 0);
+                        // Sort by date (descending usually better for lists, but matching movements asc for consistency)
+                        filteredPatients.sort((a, b) => new Date(a.fechaIngreso) - new Date(b.fechaIngreso));
 
-                        const [yearTo, monthTo, dayTo] = dateToStr.split('-').map(Number);
-                        const dateTo = new Date(yearTo, monthTo - 1, dayTo, 23, 59, 59, 999);
+                        filteredPatients.forEach(p => {
+                            const clientName = p.clientId ? clientsLookup[p.clientId] || 'Cliente Desconocido' : '-';
+                            const row = `<tr>
+                                    <td style="padding: 4px 8px;">${new Date(p.fechaIngreso).toLocaleString('es-PY')}</td>
+                                    <td style="padding: 4px 8px;">${clientName}</td>
+                                    <td style="padding: 4px 8px;">${p.motivoConsulta || '-'}</td>
+                                    <td style="padding: 4px 8px;">${p.usuario || 'Sistema'}</td>
+                                    <td style="padding: 4px 8px; text-align: right;">${new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(p.monto)}</td>
+                                </tr>`;
+                            patientsTbody.innerHTML += row;
+                        });
 
-                        loadMovements(dateFrom, dateTo);
+                        document.getElementById('totalCashBox').textContent = new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(runningBalance);
+
+                        // Store movements for export (unfiltered)
+                        if (!dateFrom && !dateTo) {
+                            allMovementsData = allMovements;
+                        }
+
+                    } catch (e) { console.error("Error loading movements:", e); }
+                }
+
+                // Initialize movements tab with today's date
+                window.initMovementsTab = function () {
+                    const today = new Date();
+                    const todayStr = today.toISOString().split('T')[0];
+
+                    document.getElementById('movementsDateFrom').value = todayStr;
+                    document.getElementById('movementsDateTo').value = todayStr;
+
+                    filterMovements();
+                }
+
+                // Filter movements by date range
+                window.filterMovements = function () {
+                    const dateFromStr = document.getElementById('movementsDateFrom').value;
+                    const dateToStr = document.getElementById('movementsDateTo').value;
+
+                    if (!dateFromStr || !dateToStr) {
+                        showNotification('Por favor seleccione ambas fechas', 'warning');
+                        return;
                     }
-                </script>
-            </div>
+
+                    // Create dates in local timezone
+                    const [yearFrom, monthFrom, dayFrom] = dateFromStr.split('-').map(Number);
+                    const dateFrom = new Date(yearFrom, monthFrom - 1, dayFrom, 0, 0, 0, 0);
+
+                    const [yearTo, monthTo, dayTo] = dateToStr.split('-').map(Number);
+                    const dateTo = new Date(yearTo, monthTo - 1, dayTo, 23, 59, 59, 999);
+
+                    loadMovements(dateFrom, dateTo);
+                }
+            </script>
+        </div>
+        </div>
         </div>
 
 
@@ -579,6 +688,51 @@
         </div>
         <div id="config" class="section-view">
             <h2>Configuración - Próximamente</h2>
+        </div>
+
+        <!-- Users Section -->
+        <div id="usuarios" class="section-view">
+            <header class="header">
+                <div class="header-title">
+                    <h1>Gestión de Usuarios</h1>
+                    <p>Administrar acceso al sistema</p>
+                </div>
+            </header>
+            <div class="content-wrapper" style="display: flex; gap: 20px; padding: 20px;">
+                <div class="form-container" style="flex: 1;">
+                    <h3>Nuevo Usuario</h3>
+                    <form id="userForm">
+                        <div class="form-group">
+                            <label>Nombre de Usuario</label>
+                            <input type="text" id="newUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña</label>
+                            <input type="password" id="newPassword" required>
+                        </div>
+                        <button type="submit" class="btn-primary"
+                            style="width: 100%; justify-content: center; margin-top: 1rem;">
+                            Crear Usuario
+                        </button>
+                    </form>
+                </div>
+                <div class="table-container" style="flex: 2;">
+                    <h3>Usuarios Registrados</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuario</th>
+                                <th>Rol</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
     </main>
@@ -910,8 +1064,8 @@
                         <td>${c.email || '-'}</td>
                         <td>${c.telefono || '-'}</td>
                         <td class="actions">
-                            <i class="fas fa-edit action-btn" title="Editar" onclick="event.stopPropagation(); editClient(${c.id})"></i>
-                            <i class="fas fa-trash action-btn action-delete" title="Eliminar" onclick="event.stopPropagation(); deleteClient(${c.id})"></i>
+                            <i class="fas fa-edit action-btn" title="Editar" onclick="editClient(event, ${c.id})"></i>
+                            <i class="fas fa-trash action-btn action-delete" title="Eliminar" onclick="deleteClient(event, ${c.id})"></i>
                         </td>
                     </tr>`;
                     tbody.innerHTML += row;
@@ -921,7 +1075,8 @@
 
         // --- Form Submissions ---
 
-        window.editClient = function (id) {
+        window.editClient = function (event, id) {
+            if (event) event.stopPropagation();
             const client = allClientsData.find(c => c.id === id);
             if (client) {
                 document.getElementById('clientModalId').value = client.id;
@@ -934,7 +1089,9 @@
             }
         }
 
-        window.deleteClient = async function (id) {
+        window.deleteClient = async function (event, id) {
+            if (event) event.stopPropagation();
+            console.log('DEBUG: deleteClient called for id:', id);
             if (confirm('¿Está seguro de eliminar este cliente?')) {
                 try {
                     const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
@@ -943,7 +1100,18 @@
                         loadClientsTable();
                         loadClientsForPatientForm();
                     } else {
-                        showNotification('Error al eliminar', 'error');
+                        console.error('Error deleting client:', res.status, res.statusText);
+                        // Try to get error message from body if possible
+                        try {
+                            const errorJson = await res.json();
+                            console.error('Server error details:', errorJson);
+                            if (errorJson.message && errorJson.message.includes('ConstraintViolation')) {
+                                showNotification('No se puede eliminar: El cliente tiene registros asociados.', 'error');
+                                return;
+                            }
+                        } catch (e) { /* ignore json parse error */ }
+
+                        showNotification('Error al eliminar. Verifique que no tenga datos asociados.', 'error');
                     }
                 } catch (e) {
                     console.error(e);
@@ -980,10 +1148,26 @@
                 data.nombre = patientName;
                 data.telefono = patientPhone;
             }
-
-            await postData('/api/patient', data, loadPatients);
+            console.log('Sending patient data:', JSON.stringify(data));
+            await postData('/api/patient', data, (savedRecord) => {
+                console.log('DEBUG: Server saved record:', savedRecord);
+                loadPatients();
+            });
             e.target.reset();
             document.getElementById('patientClientId').value = '';
+        });
+
+        document.getElementById('pettyCashForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                fecha: document.getElementById('pettyCashDate').value,
+                observacion: document.getElementById('pettyCashObservation').value || 'Apertura de Caja',
+                monto: parseFloat(document.getElementById('pettyCashAmount').value),
+                tipo: 'CAJA_CHICA'
+            };
+            await postData('/api/income', data, loadIncomes);
+            e.target.reset();
+            showNotification('Caja Chica abierta', 'success');
         });
 
         document.getElementById('incomeForm').addEventListener('submit', async (e) => {
@@ -991,7 +1175,8 @@
             const data = {
                 fecha: document.getElementById('incomeDate').value,
                 observacion: document.getElementById('incomeConcept').value + (document.getElementById('incomeObservation').value ? ' - ' + document.getElementById('incomeObservation').value : ''),
-                monto: parseFloat(document.getElementById('incomeAmount').value)
+                monto: parseFloat(document.getElementById('incomeAmount').value),
+                tipo: 'VENTA'
             };
             await postData('/api/income', data, loadIncomes);
             e.target.reset();
@@ -1028,18 +1213,27 @@
 
         // Save client and proceed to patient registration
         async function saveClientAndRegisterPatient() {
-            const data = {
-                ruc: document.getElementById('clientModalRuc').value,
-                razonSocial: document.getElementById('clientModalName').value,
-                email: document.getElementById('clientModalEmail').value,
-                telefono: document.getElementById('clientModalPhone').value,
-                direccion: document.getElementById('clientModalAddress').value
-            };
+            const ruc = document.getElementById('clientModalRuc').value;
+            let savedClient = null;
 
-            const savedClient = await postData('/api/clientes', data, (responseData) => {
-                loadClientsTable();
-                loadClientsForPatientForm();
-            });
+            // Check if client already exists
+            if (patientClientsMap[ruc]) {
+                savedClient = patientClientsMap[ruc];
+                showNotification('Cliente ya existente. Usando registro actual.', 'info');
+            } else {
+                const data = {
+                    ruc: ruc,
+                    razonSocial: document.getElementById('clientModalName').value,
+                    email: document.getElementById('clientModalEmail').value,
+                    telefono: document.getElementById('clientModalPhone').value,
+                    direccion: document.getElementById('clientModalAddress').value
+                };
+
+                savedClient = await postData('/api/clientes', data, (responseData) => {
+                    loadClientsTable();
+                    loadClientsForPatientForm();
+                });
+            }
 
             if (savedClient) {
                 // Close client modal
@@ -1054,8 +1248,9 @@
                 }
 
                 // Pre-fill patient form
-                document.getElementById('patientClientSearch').value = savedClient.ruc + ' - ' + savedClient.razonSocial;
+                document.getElementById('patientClientSearch').value = savedClient.ruc;
                 document.getElementById('patientClientId').value = savedClient.id;
+                console.log('DEBUG: Set patientClientId to', savedClient.id);
                 document.getElementById('patientName').value = savedClient.razonSocial;
                 document.getElementById('patientPhone').value = savedClient.telefono || '';
             }
@@ -1237,6 +1432,7 @@
 
         // Visit History Modal Functions
         window.openVisitHistory = async function (clientId, clientName) {
+            console.log('DEBUG: openVisitHistory called with:', clientId, clientName);
             document.getElementById('visitHistoryClientName').textContent = `Expediente: ${clientName}`;
             document.getElementById('clientVisitHistoryModal').classList.add('active');
             await loadClientVisits(clientId);
@@ -1248,9 +1444,15 @@
 
         async function loadClientVisits(clientId) {
             try {
+                console.log('DEBUG: Loading visits for client ID:', clientId, 'Type:', typeof clientId);
                 const res = await fetch('/api/patient');
                 const allPatients = await res.json();
-                const clientVisits = allPatients.filter(p => p.clientId === clientId);
+                console.log('DEBUG: Total patients fetched:', allPatients.length);
+                const clientVisits = allPatients.filter(p => {
+                    console.log(`Checking patient ${p.id}: clientId=${p.clientId} (${typeof p.clientId}) vs target=${clientId} (${typeof clientId})`);
+                    return p.clientId == clientId;
+                });
+                console.log('DEBUG: Found visits:', clientVisits.length);
                 const tbody = document.getElementById('visitHistoryTableBody');
                 tbody.innerHTML = '';
                 if (clientVisits.length === 0) {
@@ -1295,14 +1497,14 @@
                     (c.telefono && c.telefono.toLowerCase().includes(searchTerm));
             });
             filtered.forEach(c => {
-                const row = `< tr style = "cursor: pointer;" onclick = "openVisitHistory(${c.id}, '${c.razonSocial}')" >
+                const row = `<tr style="cursor: pointer;" onclick="openVisitHistory(${c.id}, '${c.razonSocial}')" >
                     <td>${c.ruc}</td>
                     <td>${c.razonSocial}</td>
                     <td>${c.email || '-'}</td>
                     <td>${c.telefono || '-'}</td>
                     <td class="actions">
-                        <i class="fas fa-edit action-btn" title="Editar" onclick="event.stopPropagation(); editClient(${c.id})"></i>
-                        <i class="fas fa-trash action-btn action-delete" title="Eliminar" onclick="event.stopPropagation(); deleteClient(${c.id})"></i>
+                        <i class="fas fa-edit action-btn" title="Editar" onclick="editClient(event, ${c.id})"></i>
+                        <i class="fas fa-trash action-btn action-delete" title="Eliminar" onclick="deleteClient(event, ${c.id})"></i>
                     </td>
                 </tr >`;
                 tbody.innerHTML += row;
@@ -1793,6 +1995,144 @@
         function filterExpenses() {
             const [dateFrom, dateTo] = getDateRangeFromInputs('expensesDateFrom', 'expensesDateTo');
             loadExpenses(dateFrom, dateTo);
+        }
+
+        // --- Auth & Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/api/me')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.username) {
+                        document.getElementById('currentUserDisplay').textContent = 'Usuario: ' + data.username;
+                    }
+                    if (data.role !== 'ADMIN') {
+                        // Hide Users sidebar item
+                        const userLink = document.querySelector('a[onclick*="usuarios"]');
+                        if (userLink) userLink.parentElement.style.display = 'none';
+
+                        // Hide Planilla Movimientos tab
+                        const reportTabBtn = document.querySelector('button[onclick*="tab-movimientos"]');
+                        if (reportTabBtn) reportTabBtn.style.display = 'none';
+
+                        // Also hide the content section directly to be safe
+                        const planillaTabContent = document.getElementById('tab-movimientos');
+                        if (planillaTabContent) planillaTabContent.style.display = 'none';
+
+                        // Hide Export button
+                        const exportBtn = document.querySelector('button[onclick*="openExportModal"]');
+                        if (exportBtn) exportBtn.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('Error fetching user info', err));
+
+            // Initial Load
+            if (typeof loadClientsTable === 'function') loadClientsTable();
+            // Clients for autocomplete are loaded dynamically when needed or here
+        });
+
+        // --- User Management Logic ---
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/users');
+                const users = await res.json();
+                const tbody = document.getElementById('usersTableBody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                users.forEach(u => {
+                    const row = `<tr>
+                        <td>${u.id}</td>
+                        <td>${u.username}</td>
+                        <td>${u.role || 'USER'}</td>
+                        <td>
+                            <button onclick="changePassword(${u.id}, '${u.username}')" style="color:blue;border:none;background:none;cursor:pointer;margin-right:8px" title="Cambiar Contraseña">
+                                <i class="fas fa-key"></i>
+                            </button>
+                            <button onclick="deleteUser(${u.id})" style="color:red;border:none;background:none;cursor:pointer" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            } catch (e) { console.error('Error loading users', e); }
+        }
+
+        const userForm = document.getElementById('userForm');
+        if (userForm) {
+            userForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('newUsername').value;
+                const password = document.getElementById('newPassword').value;
+                const data = { username: username, password: password };
+
+                try {
+                    const res = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (res.ok) {
+                        showNotification('Usuario creado correctamente', 'success');
+                        document.getElementById('userForm').reset();
+                        loadUsers();
+                    } else {
+                        const text = await res.text();
+                        showNotification(text || 'Error al crear usuario', 'error');
+                    }
+                } catch (e) { showNotification('Error de conexión', 'error'); }
+            });
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('¿Seguro que desea eliminar este usuario?')) return;
+            try {
+                const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showNotification('Usuario eliminado', 'success');
+                    loadUsers();
+                } else {
+                    showNotification('Error al eliminar usuario', 'error');
+                }
+            } catch (e) { showNotification('Error de conexión', 'error'); }
+        }
+
+        async function changePassword(id, username) {
+            const newPass = prompt(`Ingrese nueva contraseña para ${username}:`);
+            if (!newPass) return;
+
+            try {
+                const res = await fetch(`/api/users/${id}/password`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: newPass })
+                });
+
+                if (res.ok) {
+                    showNotification('Contraseña actualizada', 'success');
+                } else {
+                    const text = await res.text();
+                    showNotification(text || 'Error al cambiar contraseña', 'error');
+                }
+            } catch (e) { showNotification('Error de conexión', 'error'); }
+        }
+
+        // Hook into section switching to load users when "Usuarios" tab is active
+        // Use a safer override approach
+        if (typeof window.originalShowSection === 'undefined') {
+            window.originalShowSection = window.showSection;
+        }
+        window.showSection = function (sectionId, element) {
+            if (window.originalShowSection) window.originalShowSection(sectionId, element);
+
+            // Explicitly hide all tab contents when switching main sections
+            // This prevents 'active' tabs from persisting if they somehow leaked layout
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            // Remove active state from tab buttons
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            if (sectionId === 'usuarios') {
+                loadUsers();
+            }
         }
     </script>
 </body>

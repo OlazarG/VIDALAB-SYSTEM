@@ -14,6 +14,7 @@ public class Egreso {
     private LocalDateTime fecha;
     private Double monto;
     private String beneficiario; // or observacion
+    private String usuario; // Usuario que registró el egreso
 
     public Egreso() {
     }
@@ -54,5 +55,13 @@ public class Egreso {
 
     public void setBeneficiario(String beneficiario) {
         this.beneficiario = beneficiario;
+    }
+
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
     }
 }

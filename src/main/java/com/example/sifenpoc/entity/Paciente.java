@@ -19,6 +19,7 @@ public class Paciente {
     private String observacion;
     private String motivoConsulta;
     private String metodoPago; // "Efectivo" o "POS"
+    private String usuario; // Usuario que registró el paciente
     private Long clientId;
 
     public Paciente() {
@@ -114,5 +115,13 @@ public class Paciente {
 
     public void setMetodoPago(String metodoPago) {
         this.metodoPago = metodoPago;
+    }
+
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
     }
 }

@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/expense")
 public class EgresoController {
@@ -20,7 +22,10 @@ public class EgresoController {
     }
 
     @PostMapping
-    public Egreso create(@RequestBody Egreso egreso) {
+    public Egreso create(@RequestBody Egreso egreso, Principal principal) {
+        if (principal != null) {
+            egreso.setUsuario(principal.getName());
+        }
         return repository.save(egreso);
     }
 }
