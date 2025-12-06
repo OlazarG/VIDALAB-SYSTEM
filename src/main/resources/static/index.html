@@ -1237,7 +1237,7 @@
 
         function formatDate(dateString) {
             if (!dateString) return '';
-            return new Date(dateString).toLocaleString('es-PY');
+            return new Date(dateString).toLocaleString('es-PY', { hour12: false });
         }
 
         // --- Invoice Modal Logic (Existing) ---
@@ -1545,7 +1545,7 @@
             filteredMovements.forEach(m => {
                 runningBalance += (m.income - m.expense);
                 excelData.push({
-                    'Fecha': m.date.toLocaleString('es-PY'),
+                    'Fecha': m.date.toLocaleString('es-PY', { hour12: false }),
                     'Tipo': m.type,
                     'Descripción': m.description,
                     'Motivo': m.motivo || '-',
@@ -1892,7 +1892,7 @@
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
-            return `${year} -${month} -${day}`;
+            return `${year}-${month}-${day}`;
         }
 
         function getDateRangeFromInputs(idFrom, idTo) {
