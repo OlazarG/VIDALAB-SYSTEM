@@ -267,6 +267,15 @@
                                 <input type="number" id="incomeAmount" required placeholder="0">
                             </div>
                             <div class="form-group">
+                                <label>Método de Pago</label>
+                                <select id="incomePaymentMethod" class="form-control" required>
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                                    <option value="Transferencia">Transferencia Bancaria</option>
+                                    <option value="Cheque">Cheque</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
                                 <label>Observación</label>
                                 <input type="text" id="incomeObservation" placeholder="Opcional">
                             </div>
@@ -288,6 +297,13 @@
                             <div class="form-group">
                                 <label>Monto Inicial (Gs)</label>
                                 <input type="number" id="pettyCashAmount" required placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Método de Pago</label>
+                                <select id="pettyCashPaymentMethod" class="form-control" required>
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Transferencia">Transferencia Bancaria</option>
+                                </select>
                             </div>
                             <div class="form-group full-width">
                                 <label>Observación</label>
@@ -321,6 +337,15 @@
                         <div class="form-group">
                             <label>Monto (Gs)</label>
                             <input type="number" id="expenseAmount" required placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Método de Pago</label>
+                            <select id="expensePaymentMethod" class="form-control" required>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                                <option value="Transferencia">Transferencia Bancaria</option>
+                                <option value="Cheque">Cheque</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Categoría</label>
@@ -413,7 +438,9 @@
                             <th>Tipo</th>
                             <th>Descripción / Nombre</th>
                             <th>Motivo</th>
+                            <th>Monto</th>
                             <th>Usuario</th>
+                            <th>Método Pago</th>
                             <th>Ingreso</th>
                             <th>Egreso</th>
                             <th>Saldo Acumulado</th>
@@ -471,6 +498,7 @@
                                 description: clientName,
                                 motivo: p.motivoConsulta || '-',
                                 usuario: p.usuario || 'Sistema',
+                                paymentMethod: p.metodoPago || 'Efectivo',
                                 income: p.monto,
                                 expense: 0
                             });
@@ -483,6 +511,7 @@
                                 category: i.tipo || 'VENTA',
                                 description: i.observacion,
                                 usuario: i.usuario || 'Sistema',
+                                paymentMethod: i.metodoPago || '-',
                                 income: i.monto,
                                 expense: 0
                             });
@@ -495,6 +524,7 @@
                                 category: 'EGRESO',
                                 description: e.beneficiario,
                                 usuario: e.usuario || 'Sistema',
+                                paymentMethod: e.metodoPago || '-',
                                 income: 0,
                                 expense: e.monto
                             });
@@ -531,6 +561,7 @@
                                     <td style="padding: 4px 8px;">${m.description}</td>
                                     <td style="padding: 4px 8px;">${m.motivo || '-'}</td>
                                     <td style="padding: 4px 8px;">${m.usuario}</td>
+                                    <td style="padding: 4px 8px;">${m.paymentMethod}</td>
                                     <td style="padding: 4px 8px; color: ${m.income > 0 ? 'green' : 'inherit'}; text-align: right;">${m.income > 0 ? new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(m.income) : '-'}</td>
                                     <td style="padding: 4px 8px; color: ${m.expense > 0 ? 'red' : 'inherit'}; text-align: right;">${m.expense > 0 ? new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(m.expense) : '-'}</td>
                                     <td style="padding: 4px 8px; font-weight: bold; text-align: right;">${new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(runningBalance)}</td>
@@ -1112,7 +1143,8 @@
                 fecha: document.getElementById('pettyCashDate').value,
                 observacion: document.getElementById('pettyCashObservation').value || 'Apertura de Caja',
                 monto: parseFloat(document.getElementById('pettyCashAmount').value),
-                tipo: 'CAJA_CHICA'
+                tipo: 'CAJA_CHICA',
+                metodoPago: document.getElementById('pettyCashPaymentMethod').value
             };
             await postData('/api/income', data, loadIncomes);
             e.target.reset();
@@ -1125,7 +1157,8 @@
                 fecha: document.getElementById('incomeDate').value,
                 observacion: document.getElementById('incomeConcept').value + (document.getElementById('incomeObservation').value ? ' - ' + document.getElementById('incomeObservation').value : ''),
                 monto: parseFloat(document.getElementById('incomeAmount').value),
-                tipo: 'VENTA'
+                tipo: 'VENTA',
+                metodoPago: document.getElementById('incomePaymentMethod').value
             };
             await postData('/api/income', data, loadIncomes);
             e.target.reset();
@@ -1136,7 +1169,8 @@
             const data = {
                 fecha: document.getElementById('expenseDate').value,
                 beneficiario: document.getElementById('expenseConcept').value + ' (' + document.getElementById('expenseCategory').value + ')',
-                monto: parseFloat(document.getElementById('expenseAmount').value)
+                monto: parseFloat(document.getElementById('expenseAmount').value),
+                metodoPago: document.getElementById('expensePaymentMethod').value
             };
             await postData('/api/expense', data, loadExpenses);
             e.target.reset();
@@ -1549,6 +1583,7 @@
                     'Tipo': m.type,
                     'Descripción': m.description,
                     'Motivo': m.motivo || '-',
+                    'Método Pago': m.paymentMethod,
                     'Ingreso': m.income > 0 ? m.income.toLocaleString('es-PY') + ' Gs.' : '',
                     'Egreso': m.expense > 0 ? m.expense.toLocaleString('es-PY') + ' Gs.' : '',
                     'Saldo Acumulado': runningBalance.toLocaleString('es-PY') + ' Gs.'

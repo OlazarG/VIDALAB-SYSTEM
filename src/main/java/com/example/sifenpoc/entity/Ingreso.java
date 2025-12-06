@@ -16,6 +16,7 @@ public class Ingreso {
     private String observacion;
     private String usuario; // Usuario que registró el ingreso
     private String tipo; // VENTA, CAJA_CHICA
+    private String metodoPago; // Efectivo, Transferencia, etc.
 
     public Ingreso() {
     }
@@ -72,5 +73,13 @@ public class Ingreso {
 
     public void setTipo(String tipo) {
         this.tipo = tipo;
+    }
+
+    public String getMetodoPago() {
+        return metodoPago;
+    }
+
+    public void setMetodoPago(String metodoPago) {
+        this.metodoPago = metodoPago;
     }
 }
