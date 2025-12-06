@@ -301,32 +301,7 @@
                     </form>
                 </div>
             </div>
-            <div class="table-container">
-                <h3>Últimos Ingresos</h3>
-                <div
-                    style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
-                    <label style="font-weight: 500;">Desde:</label>
-                    <input type="date" id="incomesDateFrom"
-                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                    <label style="font-weight: 500;">Hasta:</label>
-                    <input type="date" id="incomesDateTo"
-                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                    <button class="btn-primary" onclick="filterIncomes()" style="padding: 6px 16px; font-size: 0.9em;">
-                        <i class="fas fa-filter"></i> Filtrar
-                    </button>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Concepto</th>
-                            <th>Monto</th>
-                            <th>Observación</th>
-                        </tr>
-                    </thead>
-                    <tbody id="incomeTableBody"></tbody>
-                </table>
-            </div>
+            <!-- Removed Últimos Ingresos table as per request -->
         </div>
 
         <!-- Tab Egresos -->
@@ -990,33 +965,7 @@
         }
 
         async function loadIncomes(dateFrom = null, dateTo = null) {
-            try {
-                const res = await fetch('/api/income');
-                if (!res.ok) throw new Error('Failed to load incomes');
-                let data = await res.json();
-                // Sort by date descending
-                data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-                // Filter by date range
-                if (dateFrom && dateTo) {
-                    data = data.filter(i => {
-                        const iDate = new Date(i.fecha);
-                        return iDate >= dateFrom && iDate <= dateTo;
-                    });
-                }
-
-                const tbody = document.getElementById('incomeTableBody');
-                tbody.innerHTML = '';
-                data.forEach(item => {
-                    const row = `<tr>
-                        <td>${formatDate(item.fecha)}</td>
-                        <td>${item.observacion}</td>
-                        <td>${formatCurrency(item.monto)}</td>
-                        <td>-</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-            } catch (e) { console.error(e); }
+            // Function neutralized as per request to remove Incomes Table
         }
 
         async function loadExpenses(dateFrom = null, dateTo = null) {
@@ -1974,15 +1923,11 @@
         }
 
         function initIncomesTab() {
-            const today = getTodayDateString();
-            document.getElementById('incomesDateFrom').value = today;
-            document.getElementById('incomesDateTo').value = today;
-            filterIncomes();
+            // Neutralized
         }
 
         function filterIncomes() {
-            const [dateFrom, dateTo] = getDateRangeFromInputs('incomesDateFrom', 'incomesDateTo');
-            loadIncomes(dateFrom, dateTo);
+            // Neutralized
         }
 
         function initExpensesTab() {
