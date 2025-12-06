@@ -168,55 +168,54 @@
                     <form id="patientForm">
                         <div class="form-grid">
                             <div class="form-group">
-                                <div class="form-group">
-                                    <label>Fecha (Automática)</label>
-                                    <input type="datetime-local" id="patientDate" readonly required
-                                        style="background-color: #e9ecef;">
-                                </div>
-                                <div class="form-group">
-                                    <label>Cliente (Opcional - RUC/CI o Nombre)</label>
-                                    <input type="text" id="patientClientSearch" list="patientClientList"
-                                        placeholder="Buscar cliente o dejar vacío...">
-                                    <datalist id="patientClientList"></datalist>
-                                    <input type="hidden" id="patientClientId">
-                                </div>
-                                <div class="form-group" id="patientNameGroup">
-                                    <label>Nombre Completo</label>
-                                    <input type="text" id="patientName" placeholder="Nombre del paciente">
-                                </div>
-                                <div class="form-group" id="patientPhoneGroup">
-                                    <label>Teléfono</label>
-                                    <input type="text" id="patientPhone" placeholder="09XX...">
-                                </div>
-                                <div class="form-group">
-                                    <label>Monto (Gs)</label>
-                                    <input type="number" id="patientAmount" required placeholder="0">
-                                </div>
-                                <div class="form-group">
-                                    <label>Saldo (Gs)</label>
-                                    <input type="number" id="patientBalance" placeholder="0">
-                                </div>
-                                <div class="form-group">
-                                    <label>Método de Pago</label>
-                                    <select id="patientPaymentMethod" class="form-control" required>
-                                        <option value="Efectivo">Efectivo</option>
-                                        <option value="POS">POS</option>
-                                    </select>
-                                </div>
-                                <div class="form-group full-width">
-                                    <label>Motivo de Visita</label>
-                                    <textarea id="patientVisitReason" placeholder="Describa el motivo de la visita..."
-                                        rows="3"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label>Observación</label>
-                                    <input type="text" id="patientObservation" placeholder="Opcional">
-                                </div>
+                                <label>Fecha (Automática)</label>
+                                <input type="datetime-local" id="patientDate" readonly required
+                                    style="background-color: #e9ecef;">
                             </div>
-                            <button type="submit" class="btn-primary"
-                                style="width: 100%; justify-content: center; margin-top: 1rem;">
-                                Guardar Paciente
-                            </button>
+                            <div class="form-group">
+                                <label>Cliente (Opcional - RUC/CI o Nombre)</label>
+                                <input type="text" id="patientClientSearch" list="patientClientList"
+                                    placeholder="Buscar cliente o dejar vacío...">
+                                <datalist id="patientClientList"></datalist>
+                                <input type="hidden" id="patientClientId">
+                            </div>
+                            <div class="form-group" id="patientNameGroup">
+                                <label>Nombre Completo</label>
+                                <input type="text" id="patientName" placeholder="Nombre del paciente">
+                            </div>
+                            <div class="form-group" id="patientPhoneGroup">
+                                <label>Teléfono</label>
+                                <input type="text" id="patientPhone" placeholder="09XX...">
+                            </div>
+                            <div class="form-group">
+                                <label>Monto (Gs)</label>
+                                <input type="number" id="patientAmount" required placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Saldo (Gs)</label>
+                                <input type="number" id="patientBalance" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Método de Pago</label>
+                                <select id="patientPaymentMethod" class="form-control" required>
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="POS">POS</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Motivo de Visita</label>
+                                <textarea id="patientVisitReason" placeholder="Describa el motivo de la visita..."
+                                    rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Observación</label>
+                                <input type="text" id="patientObservation" placeholder="Opcional">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary"
+                            style="width: 100%; justify-content: center; margin-top: 1rem;">
+                            Guardar Paciente
+                        </button>
                     </form>
                 </div>
                 <div class="table-container">
@@ -607,8 +606,7 @@
 
                 // Initialize movements tab with today's date
                 window.initMovementsTab = function () {
-                    const today = new Date();
-                    const todayStr = today.toISOString().split('T')[0];
+                    const todayStr = getTodayDateString(); // Use local date string
 
                     document.getElementById('movementsDateFrom').value = todayStr;
                     document.getElementById('movementsDateTo').value = todayStr;
@@ -1502,6 +1500,7 @@
                 clients.forEach(c => {
                     const option = document.createElement('option');
                     option.value = c.ruc;
+                    option.textContent = `${c.ruc} - ${c.razonSocial}`; // Show details in dropdown
                     datalist.appendChild(option);
                     patientClientsMap[c.ruc] = c;
                 });
@@ -1533,17 +1532,22 @@
         });
 
         function updateAllDateFields() {
-            const now = new Date();
-            // Format to YYYY-MM-DDTHH:mm for datetime-local
-            // Adjust for timezone offset to ensure local time is displayed correctly
-            const offset = now.getTimezoneOffset() * 60000;
-            const localIso = new Date(now - offset).toISOString().slice(0, 16);
+            try {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
 
-            const ids = ['patientDate', 'incomeDate', 'pettyCashDate', 'expenseDate'];
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = localIso;
-            });
+                const localIso = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+                const ids = ['patientDate', 'incomeDate', 'pettyCashDate', 'expenseDate'];
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = localIso;
+                });
+            } catch (e) { console.error("Error updating dates:", e); }
         }
 
     </script>
