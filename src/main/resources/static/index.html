@@ -438,7 +438,6 @@
                             <th>Tipo</th>
                             <th>Descripción / Nombre</th>
                             <th>Motivo</th>
-                            <th>Monto</th>
                             <th>Usuario</th>
                             <th>Método Pago</th>
                             <th>Ingreso</th>
@@ -556,7 +555,7 @@
                             }
 
                             const row = `<tr>
-                                    <td style="padding: 4px 8px;">${m.date.toLocaleString('es-PY')}</td>
+                                    <td style="padding: 4px 8px;">${m.date.toLocaleString('es-PY', { hour12: false })}</td>
                                     <td style="padding: 4px 8px;">${m.type}</td>
                                     <td style="padding: 4px 8px;">${m.description}</td>
                                     <td style="padding: 4px 8px;">${m.motivo || '-'}</td>
@@ -594,7 +593,7 @@
                         filteredPatients.forEach(p => {
                             const clientName = p.clientId ? clientsLookup[p.clientId] || 'Cliente Desconocido' : '-';
                             const row = `<tr>
-                                    <td style="padding: 4px 8px;">${new Date(p.fechaIngreso).toLocaleString('es-PY')}</td>
+                                    <td style="padding: 4px 8px;">${new Date(p.fechaIngreso).toLocaleString('es-PY', { hour12: false })}</td>
                                     <td style="padding: 4px 8px;">${clientName}</td>
                                     <td style="padding: 4px 8px;">${p.motivoConsulta || '-'}</td>
                                     <td style="padding: 4px 8px;">${p.usuario || 'Sistema'}</td>
