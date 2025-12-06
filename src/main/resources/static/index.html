@@ -168,53 +168,55 @@
                     <form id="patientForm">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label>Fecha</label>
-                                <input type="datetime-local" id="patientDate" required>
+                                <div class="form-group">
+                                    <label>Fecha (Automática)</label>
+                                    <input type="datetime-local" id="patientDate" readonly required
+                                        style="background-color: #e9ecef;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Cliente (Opcional - RUC/CI o Nombre)</label>
+                                    <input type="text" id="patientClientSearch" list="patientClientList"
+                                        placeholder="Buscar cliente o dejar vacío...">
+                                    <datalist id="patientClientList"></datalist>
+                                    <input type="hidden" id="patientClientId">
+                                </div>
+                                <div class="form-group" id="patientNameGroup">
+                                    <label>Nombre Completo</label>
+                                    <input type="text" id="patientName" placeholder="Nombre del paciente">
+                                </div>
+                                <div class="form-group" id="patientPhoneGroup">
+                                    <label>Teléfono</label>
+                                    <input type="text" id="patientPhone" placeholder="09XX...">
+                                </div>
+                                <div class="form-group">
+                                    <label>Monto (Gs)</label>
+                                    <input type="number" id="patientAmount" required placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Saldo (Gs)</label>
+                                    <input type="number" id="patientBalance" placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Método de Pago</label>
+                                    <select id="patientPaymentMethod" class="form-control" required>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="POS">POS</option>
+                                    </select>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Motivo de Visita</label>
+                                    <textarea id="patientVisitReason" placeholder="Describa el motivo de la visita..."
+                                        rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Observación</label>
+                                    <input type="text" id="patientObservation" placeholder="Opcional">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>Cliente (Opcional - RUC/CI o Nombre)</label>
-                                <input type="text" id="patientClientSearch" list="patientClientList"
-                                    placeholder="Buscar cliente o dejar vacío...">
-                                <datalist id="patientClientList"></datalist>
-                                <input type="hidden" id="patientClientId">
-                            </div>
-                            <div class="form-group" id="patientNameGroup">
-                                <label>Nombre Completo</label>
-                                <input type="text" id="patientName" placeholder="Nombre del paciente">
-                            </div>
-                            <div class="form-group" id="patientPhoneGroup">
-                                <label>Teléfono</label>
-                                <input type="text" id="patientPhone" placeholder="09XX...">
-                            </div>
-                            <div class="form-group">
-                                <label>Monto (Gs)</label>
-                                <input type="number" id="patientAmount" required placeholder="0">
-                            </div>
-                            <div class="form-group">
-                                <label>Saldo (Gs)</label>
-                                <input type="number" id="patientBalance" placeholder="0">
-                            </div>
-                            <div class="form-group">
-                                <label>Método de Pago</label>
-                                <select id="patientPaymentMethod" class="form-control" required>
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="POS">POS</option>
-                                </select>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Motivo de Visita</label>
-                                <textarea id="patientVisitReason" placeholder="Describa el motivo de la visita..."
-                                    rows="3"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Observación</label>
-                                <input type="text" id="patientObservation" placeholder="Opcional">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-primary"
-                            style="width: 100%; justify-content: center; margin-top: 1rem;">
-                            Guardar Paciente
-                        </button>
+                            <button type="submit" class="btn-primary"
+                                style="width: 100%; justify-content: center; margin-top: 1rem;">
+                                Guardar Paciente
+                            </button>
                     </form>
                 </div>
                 <div class="table-container">
@@ -255,35 +257,37 @@
                     <form id="incomeForm">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label>Fecha</label>
-                                <input type="datetime-local" id="incomeDate" required>
+                                <div class="form-group">
+                                    <label>Fecha (Automática)</label>
+                                    <input type="datetime-local" id="incomeDate" readonly required
+                                        style="background-color: #e9ecef;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Concepto</label>
+                                    <input type="text" id="incomeConcept" required placeholder="Ej: Venta de producto">
+                                </div>
+                                <div class="form-group">
+                                    <label>Monto (Gs)</label>
+                                    <input type="number" id="incomeAmount" required placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Método de Pago</label>
+                                    <select id="incomePaymentMethod" class="form-control" required>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                                        <option value="Transferencia">Transferencia Bancaria</option>
+                                        <option value="Cheque">Cheque</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Observación</label>
+                                    <input type="text" id="incomeObservation" placeholder="Opcional">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>Concepto</label>
-                                <input type="text" id="incomeConcept" required placeholder="Ej: Venta de producto">
-                            </div>
-                            <div class="form-group">
-                                <label>Monto (Gs)</label>
-                                <input type="number" id="incomeAmount" required placeholder="0">
-                            </div>
-                            <div class="form-group">
-                                <label>Método de Pago</label>
-                                <select id="incomePaymentMethod" class="form-control" required>
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
-                                    <option value="Transferencia">Transferencia Bancaria</option>
-                                    <option value="Cheque">Cheque</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Observación</label>
-                                <input type="text" id="incomeObservation" placeholder="Opcional">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-primary"
-                            style="width: 100%; justify-content: center; margin-top: 1rem;">
-                            Registrar Ingreso
-                        </button>
+                            <button type="submit" class="btn-primary"
+                                style="width: 100%; justify-content: center; margin-top: 1rem;">
+                                Registrar Ingreso
+                            </button>
                     </form>
                 </div>
                 <div class="form-container" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
@@ -291,29 +295,31 @@
                     <form id="pettyCashForm">
                         <div class="form-grid">
                             <div class="form-group">
-                                <label>Fecha</label>
-                                <input type="datetime-local" id="pettyCashDate" required>
+                                <div class="form-group">
+                                    <label>Fecha (Automática)</label>
+                                    <input type="datetime-local" id="pettyCashDate" readonly required
+                                        style="background-color: #e9ecef;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Monto Inicial (Gs)</label>
+                                    <input type="number" id="pettyCashAmount" required placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Método de Pago</label>
+                                    <select id="pettyCashPaymentMethod" class="form-control" required>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Transferencia">Transferencia Bancaria</option>
+                                    </select>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Observación</label>
+                                    <input type="text" id="pettyCashObservation" value="Apertura de Caja">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>Monto Inicial (Gs)</label>
-                                <input type="number" id="pettyCashAmount" required placeholder="0">
-                            </div>
-                            <div class="form-group">
-                                <label>Método de Pago</label>
-                                <select id="pettyCashPaymentMethod" class="form-control" required>
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="Transferencia">Transferencia Bancaria</option>
-                                </select>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Observación</label>
-                                <input type="text" id="pettyCashObservation" value="Apertura de Caja">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-primary"
-                            style="width: 100%; justify-content: center; margin-top: 1rem; background-color: #28a745;">
-                            Registrar Apertura Caja
-                        </button>
+                            <button type="submit" class="btn-primary"
+                                style="width: 100%; justify-content: center; margin-top: 1rem; background-color: #28a745;">
+                                Registrar Apertura Caja
+                            </button>
                     </form>
                 </div>
             </div>
@@ -322,73 +328,60 @@
 
         <!-- Tab Egresos -->
         <div id="tab-egresos" class="tab-content">
-            <div class="form-container">
-                <h3>Registro de Egresos</h3>
-                <form id="expenseForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Fecha</label>
-                            <input type="datetime-local" id="expenseDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Concepto</label>
-                            <input type="text" id="expenseConcept" required placeholder="Ej: Pago de luz">
-                        </div>
-                        <div class="form-group">
-                            <label>Monto (Gs)</label>
-                            <input type="number" id="expenseAmount" required placeholder="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Método de Pago</label>
-                            <select id="expensePaymentMethod" class="form-control" required>
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
-                                <option value="Transferencia">Transferencia Bancaria</option>
-                                <option value="Cheque">Cheque</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Categoría</label>
-                            <select id="expenseCategory" class="form-control">
-                                <option value="Operativo">Operativo</option>
-                                <option value="Administrativo">Administrativo</option>
-                                <option value="Insumos">Insumos</option>
-                                <option value="Otros">Otros</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary"
-                        style="width: 100%; justify-content: center; margin-top: 1rem;">
-                        Registrar Egreso
-                    </button>
-                </form>
+            <div class="form-group">
+                <label>Monto (Gs)</label>
+                <input type="number" id="expenseAmount" required placeholder="0">
             </div>
-            <div class="table-container">
-                <h3>Últimos Egresos</h3>
-                <div
-                    style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
-                    <label style="font-weight: 500;">Desde:</label>
-                    <input type="date" id="expensesDateFrom"
-                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                    <label style="font-weight: 500;">Hasta:</label>
-                    <input type="date" id="expensesDateTo"
-                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                    <button class="btn-primary" onclick="filterExpenses()" style="padding: 6px 16px; font-size: 0.9em;">
-                        <i class="fas fa-filter"></i> Filtrar
-                    </button>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Concepto</th>
-                            <th>Monto</th>
-                            <th>Categoría</th>
-                        </tr>
-                    </thead>
-                    <tbody id="expenseTableBody"></tbody>
-                </table>
+            <div class="form-group">
+                <label>Método de Pago</label>
+                <select id="expensePaymentMethod" class="form-control" required>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                    <option value="Transferencia">Transferencia Bancaria</option>
+                    <option value="Cheque">Cheque</option>
+                </select>
             </div>
+            <div class="form-group">
+                <label>Categoría</label>
+                <select id="expenseCategory" class="form-control">
+                    <option value="Operativo">Operativo</option>
+                    <option value="Administrativo">Administrativo</option>
+                    <option value="Insumos">Insumos</option>
+                    <option value="Otros">Otros</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+            Registrar Egreso
+        </button>
+        </form>
+        </div>
+        <div class="table-container">
+            <h3>Últimos Egresos</h3>
+            <div
+                style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                <label style="font-weight: 500;">Desde:</label>
+                <input type="date" id="expensesDateFrom"
+                    style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                <label style="font-weight: 500;">Hasta:</label>
+                <input type="date" id="expensesDateTo"
+                    style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                <button class="btn-primary" onclick="filterExpenses()" style="padding: 6px 16px; font-size: 0.9em;">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Concepto</th>
+                        <th>Monto</th>
+                        <th>Categoría</th>
+                    </tr>
+                </thead>
+                <tbody id="expenseTableBody"></tbody>
+            </table>
+        </div>
         </div>
 
         <!-- Tab Planilla de Movimientos -->
@@ -1133,6 +1126,7 @@
                 loadPatients();
             });
             e.target.reset();
+            updateAllDateFields(); // Reset time to now
             document.getElementById('patientClientId').value = '';
         });
 
@@ -1147,6 +1141,7 @@
             };
             await postData('/api/income', data, loadIncomes);
             e.target.reset();
+            updateAllDateFields();
             showNotification('Caja Chica abierta', 'success');
         });
 
@@ -1161,6 +1156,7 @@
             };
             await postData('/api/income', data, loadIncomes);
             e.target.reset();
+            updateAllDateFields();
         });
 
         document.getElementById('expenseForm').addEventListener('submit', async (e) => {
@@ -1173,6 +1169,7 @@
             };
             await postData('/api/expense', data, loadExpenses);
             e.target.reset();
+            updateAllDateFields();
         });
 
         document.getElementById('clientModalForm').addEventListener('submit', async (e) => {
@@ -1530,7 +1527,24 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadDailySummary();
             loadClientsForPatientForm();
+            updateAllDateFields();
+            // Update time every minute to keep it fresh until submission
+            setInterval(updateAllDateFields, 60000);
         });
+
+        function updateAllDateFields() {
+            const now = new Date();
+            // Format to YYYY-MM-DDTHH:mm for datetime-local
+            // Adjust for timezone offset to ensure local time is displayed correctly
+            const offset = now.getTimezoneOffset() * 60000;
+            const localIso = new Date(now - offset).toISOString().slice(0, 16);
+
+            const ids = ['patientDate', 'incomeDate', 'pettyCashDate', 'expenseDate'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = localIso;
+            });
+        }
 
     </script>
 
