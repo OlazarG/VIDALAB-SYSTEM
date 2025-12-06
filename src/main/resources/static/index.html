@@ -2070,13 +2070,23 @@
             if (window.originalShowSection) window.originalShowSection(sectionId, element);
 
             // Explicitly hide all tab contents when switching main sections
-            // This prevents 'active' tabs from persisting if they somehow leaked layout
             document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-            // Remove active state from tab buttons
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
             if (sectionId === 'usuarios') {
                 loadUsers();
+            }
+
+            // Auto-open Pacientes tab when entering Inventario/Planilla
+            if (sectionId === 'inventario') {
+                const patientsTabBtn = document.querySelector('button[onclick*="tab-pacientes"]');
+                if (patientsTabBtn) {
+                    // Manually call openTab logic
+                    // We pass a mock event object with currentTarget set to the button
+                    if (typeof openTab === 'function') {
+                        openTab({ currentTarget: patientsTabBtn }, 'tab-pacientes');
+                    }
+                }
             }
         }
     </script>
