@@ -1,11 +1,11 @@
 package com.example.sifenpoc.service;
 
-import com.example.sifenpoc.entity.Expense;
-import com.example.sifenpoc.entity.Income;
-import com.example.sifenpoc.entity.PatientEntry;
-import com.example.sifenpoc.repository.ExpenseRepository;
-import com.example.sifenpoc.repository.IncomeRepository;
-import com.example.sifenpoc.repository.PatientEntryRepository;
+import com.example.sifenpoc.entity.Ingreso;
+import com.example.sifenpoc.entity.Egreso;
+import com.example.sifenpoc.entity.Paciente;
+import com.example.sifenpoc.repository.IngresoRepository;
+import com.example.sifenpoc.repository.EgresoRepository;
+import com.example.sifenpoc.repository.PacienteRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,25 +23,25 @@ import java.util.List;
 public class ReportService {
 
     @Autowired
-    private IncomeRepository incomeRepository;
+    private IngresoRepository ingresoRepository;
 
     @Autowired
-    private ExpenseRepository expenseRepository;
+    private EgresoRepository egresoRepository;
 
     @Autowired
-    private PatientEntryRepository patientEntryRepository;
+    private PacienteRepository pacienteRepository;
 
     public ByteArrayInputStream generateIncomeReport(LocalDate date) throws IOException {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.atTime(23, 59, 59);
-        List<Income> incomes = incomeRepository.findByDateBetween(start, end);
+        List<Ingreso> ingresos = ingresoRepository.findByFechaBetween(start, end);
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Ingresos");
 
             // Header
             Row headerRow = sheet.createRow(0);
-            String[] columns = { "Fecha", "Monto (Gs)", "Observación / Servicio" };
+            String[] columns = { "Fecha", "Monto (Gs)", "Tipo", "Método Pago", "Observación" };
             for (int i = 0; i < columns.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columns[i]);
@@ -51,11 +51,13 @@ public class ReportService {
             // Data
             int rowIdx = 1;
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            for (Income income : incomes) {
+            for (Ingreso ingreso : ingresos) {
                 Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(income.getDate().format(formatter));
-                row.createCell(1).setCellValue(income.getAmount());
-                row.createCell(2).setCellValue(income.getObservation());
+                row.createCell(0).setCellValue(ingreso.getFecha().format(formatter));
+                row.createCell(1).setCellValue(ingreso.getMonto());
+                row.createCell(2).setCellValue(ingreso.getTipo() != null ? ingreso.getTipo() : "");
+                row.createCell(3).setCellValue(ingreso.getMetodoPago() != null ? ingreso.getMetodoPago() : "");
+                row.createCell(4).setCellValue(ingreso.getObservacion() != null ? ingreso.getObservacion() : "");
             }
 
             workbook.write(out);
@@ -66,14 +68,14 @@ public class ReportService {
     public ByteArrayInputStream generateExpenseReport(LocalDate date) throws IOException {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.atTime(23, 59, 59);
-        List<Expense> expenses = expenseRepository.findByDateBetween(start, end);
+        List<Egreso> egresos = egresoRepository.findByFechaBetween(start, end);
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Egresos");
 
             // Header
             Row headerRow = sheet.createRow(0);
-            String[] columns = { "Fecha", "Monto (Gs)", "Beneficiario / Observación" };
+            String[] columns = { "Fecha", "Monto (Gs)", "Beneficiario", "Método Pago" };
             for (int i = 0; i < columns.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columns[i]);
@@ -83,11 +85,12 @@ public class ReportService {
             // Data
             int rowIdx = 1;
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            for (Expense expense : expenses) {
+            for (Egreso egreso : egresos) {
                 Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(expense.getDate().format(formatter));
-                row.createCell(1).setCellValue(expense.getAmount());
-                row.createCell(2).setCellValue(expense.getBeneficiary());
+                row.createCell(0).setCellValue(egreso.getFecha().format(formatter));
+                row.createCell(1).setCellValue(egreso.getMonto());
+                row.createCell(2).setCellValue(egreso.getBeneficiario() != null ? egreso.getBeneficiario() : "");
+                row.createCell(3).setCellValue(egreso.getMetodoPago() != null ? egreso.getMetodoPago() : "");
             }
 
             workbook.write(out);
@@ -98,15 +101,14 @@ public class ReportService {
     public ByteArrayInputStream generatePatientReport(LocalDate date) throws IOException {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.atTime(23, 59, 59);
-        List<PatientEntry> entries = patientEntryRepository.findByDateBetween(start, end);
+        List<Paciente> pacientes = pacienteRepository.findByFechaIngresoBetween(start, end);
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Pacientes");
 
             // Header
             Row headerRow = sheet.createRow(0);
-            String[] columns = { "Fecha", "Nombre del Paciente", "Monto Recibido (Gs)", "Saldo Pendiente (Gs)",
-                    "Nro. Teléfono", "Contacto Adicional" };
+            String[] columns = { "Fecha", "Nombre", "Monto (Gs)", "Saldo (Gs)", "Teléfono", "Observación" };
             for (int i = 0; i < columns.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columns[i]);
@@ -116,14 +118,14 @@ public class ReportService {
             // Data
             int rowIdx = 1;
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            for (PatientEntry entry : entries) {
+            for (Paciente paciente : pacientes) {
                 Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(entry.getDate().format(formatter));
-                row.createCell(1).setCellValue(entry.getPatientName());
-                row.createCell(2).setCellValue(entry.getAmountReceived());
-                row.createCell(3).setCellValue(entry.getBalancePending() != null ? entry.getBalancePending() : 0.0);
-                row.createCell(4).setCellValue(entry.getPhoneNumber());
-                row.createCell(5).setCellValue(entry.getObservation());
+                row.createCell(0).setCellValue(paciente.getFechaIngreso().format(formatter));
+                row.createCell(1).setCellValue(paciente.getNombre() != null ? paciente.getNombre() : "");
+                row.createCell(2).setCellValue(paciente.getMonto() != null ? paciente.getMonto() : 0.0);
+                row.createCell(3).setCellValue(paciente.getSaldo() != null ? paciente.getSaldo() : 0.0);
+                row.createCell(4).setCellValue(paciente.getTelefono() != null ? paciente.getTelefono() : "");
+                row.createCell(5).setCellValue(paciente.getObservacion() != null ? paciente.getObservacion() : "");
             }
 
             workbook.write(out);

@@ -1,0 +1,140 @@
+=================================================================
+ANÁLISIS DETALLADO: TABLAS DUPLICADAS Y SUS GENERADORES
+=================================================================
+
+TABLAS DUPLICADAS EN LA BD:
+1. income (NO USADA) vs ingresos (USADA)
+2. expense (NO USADA) vs egresos (USADA)
+3. patient_entry (NO USADA) vs pacientes (USADA)
+
+=================================================================
+1. TABLA DUPLICADA: income vs ingresos
+=================================================================
+
+GENERADOR NO USADO (CREA TABLA "income"):
+┌─ Clase Java: Income.java
+│  Ubicación: com.example.sifenpoc.entity.Income
+│  Paquete: src/main/java/com/example/sifenpoc/entity/Income.java
+│  Anotación: @Entity (SIN @Table)
+│  → Por defecto Hibernate genera tabla con nombre = nombreClase.toLowerCase()
+│  → Resultado: tabla "income"
+│
+└─ Entidades asociadas SIN USAR:
+   - Repository: IncomeRepository.java
+   - Controller endpoint: /api/income (PERO ESTE SÍ SE USA)
+   - Nota: El controlador está mapeado a /api/income pero usa
+           IngresoController y no IncomeRepository
+
+GENERADOR USADO (CREA TABLA "ingresos"):
+┌─ Clase Java: Ingreso.java
+│  Ubicación: com.example.sifenpoc.entity.Ingreso
+│  Paquete: src/main/java/com/example/sifenpoc/entity/Ingreso.java
+│  Anotación: @Entity @Table(name = "ingresos")
+│  → Especifica que la tabla se llame "ingresos"
+│
+└─ Entidades asociadas EN USO:
+   - Repository: IngresoRepository.java ✅ EN USO
+   - Controller: IngresoController.java (@Autowired IngresoRepository) ✅ EN USO
+   - Endpoint: POST /api/income → IngresoController.create(@RequestBody Ingreso)
+   - NOTA: El endpoint es /api/income pero la entidad es Ingreso
+
+=================================================================
+2. TABLA DUPLICADA: expense vs egresos
+=================================================================
+
+GENERADOR NO USADO (CREA TABLA "expense"):
+┌─ Clase Java: Expense.java
+│  Ubicación: com.example.sifenpoc.entity.Expense
+│  Paquete: src/main/java/com/example/sifenpoc/entity/Expense.java
+│  Anotación: @Entity (SIN @Table)
+│  → Resultado: tabla "expense"
+│
+└─ Entidades asociadas SIN USAR:
+   - Repository: ExpenseRepository.java
+   - Controller endpoint: /api/expense (PERO ESTE ESTÁ EN OTRO CONTROLADOR)
+
+GENERADOR USADO (CREA TABLA "egresos"):
+┌─ Clase Java: Egreso.java
+│  Ubicación: com.example.sifenpoc.entity.Egreso
+│  Paquete: src/main/java/com/example/sifenpoc/entity/Egreso.java
+│  Anotación: @Entity @Table(name = "egresos")
+│  → Especifica que la tabla se llame "egresos"
+│
+└─ Entidades asociadas EN USO:
+   - Repository: EgresoRepository.java ✅ EN USO
+   - Controller: EgresoController.java (@Autowired EgresoRepository) ✅ EN USO
+   - Endpoint: POST /api/expense → EgresoController.create(@RequestBody Egreso)
+   - NOTA: El endpoint es /api/expense pero la entidad es Egreso
+
+=================================================================
+3. TABLA DUPLICADA: patient_entry vs pacientes
+=================================================================
+
+GENERADOR NO USADO (CREA TABLA "patient_entry"):
+┌─ Clase Java: PatientEntry.java
+│  Ubicación: com.example.sifenpoc.entity.PatientEntry
+│  Paquete: src/main/java/com/example/sifenpoc/entity/PatientEntry.java
+│  Anotación: @Entity (SIN @Table)
+│  → Resultado: tabla "patient_entry"
+│
+└─ Entidades asociadas SIN USAR:
+   - Repository: PatientEntryRepository.java
+   - NO hay controlador que la use
+
+GENERADOR USADO (CREA TABLA "pacientes"):
+┌─ Clase Java: Paciente.java
+│  Ubicación: com.example.sifenpoc.entity.Paciente
+│  Paquete: src/main/java/com/example/sifenpoc/entity/Paciente.java
+│  Anotación: @Entity @Table(name = "pacientes")
+│  → Especifica que la tabla se llame "pacientes"
+│
+└─ Entidades asociadas EN USO:
+   - Repository: PacienteRepository.java ✅ EN USO
+   - Controller: PacienteController.java (@Autowired PacienteRepository) ✅ EN USO
+   - Endpoint: POST /api/patient → PacienteController.create(@RequestBody Paciente)
+
+=================================================================
+RESUMEN EJECUTIVO
+=================================================================
+
+CLASES QUE CREAN TABLAS NO USADAS (3 CLASES):
+┌─ Income.java
+│  └─ Ubicación: src/main/java/com/example/sifenpoc/entity/Income.java
+│  └─ Acción: ELIMINAR o DESACTIVAR
+│
+├─ Expense.java
+│  └─ Ubicación: src/main/java/com/example/sifenpoc/entity/Expense.java
+│  └─ Acción: ELIMINAR o DESACTIVAR
+│
+└─ PatientEntry.java
+   └─ Ubicación: src/main/java/com/example/sifenpoc/entity/PatientEntry.java
+   └─ Acción: ELIMINAR o DESACTIVAR
+
+CLASES QUE CREAN TABLAS EN USO (3 CLASES):
+┌─ Ingreso.java (tabla: ingresos) ✅
+├─ Egreso.java (tabla: egresos) ✅
+└─ Paciente.java (tabla: pacientes) ✅
+
+=================================================================
+RECOMENDACIÓN
+=================================================================
+
+Opción 1: LIMPIAR (Recomendado)
+- Eliminar: Income.java
+- Eliminar: Expense.java
+- Eliminar: PatientEntry.java
+- Eliminar: IncomeRepository.java
+- Eliminar: ExpenseRepository.java
+- Eliminar: PatientEntryRepository.java
+- Ejecutar: cleanup_duplicate_tables.sql
+- Resultado: Base de datos limpia, código limpio
+
+Opción 2: MARCAR COMO DEPRECATED
+- Agregar @Deprecated a Income, Expense, PatientEntry
+- Documentar que están en desuso
+- Eliminar más adelante
+
+Opción 3: MANTENER (NO RECOMENDADO)
+- Documentar por qué existen
+- Mantener aisladas (no usarlas)
+- Riesgo: Confusión en el desarrollo

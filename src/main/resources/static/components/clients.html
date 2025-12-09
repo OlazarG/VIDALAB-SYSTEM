@@ -1,0 +1,31 @@
+<header class="header">
+    <div class="header-title">
+        <h1>Directorio de Clientes</h1>
+        <p>Gestión de clientes y pacientes</p>
+    </div>
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="clientSearchInput" placeholder="Buscar cliente..." onkeyup="filterClients()">
+        </div>
+        <button class="btn-primary" onclick="openClientModal()">
+            <i class="fas fa-user-plus"></i> Nuevo Cliente
+        </button>
+    </div>
+</header>
+<div class="content-wrapper" style="padding: 20px;">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>RUC/CI</th>
+                    <th>Razón Social</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="clientsTableBody"></tbody>
+        </table>
+    </div>
+</div>

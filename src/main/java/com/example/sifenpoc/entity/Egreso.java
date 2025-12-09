@@ -16,6 +16,7 @@ public class Egreso {
     private String beneficiario; // or observacion
     private String usuario; // Usuario que registró el egreso
     private String metodoPago;
+    private String categoria; // CAJA_CHICA, TRANSFERENCIA, etc.
 
     public Egreso() {
     }
@@ -72,5 +73,13 @@ public class Egreso {
 
     public void setMetodoPago(String metodoPago) {
         this.metodoPago = metodoPago;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 }

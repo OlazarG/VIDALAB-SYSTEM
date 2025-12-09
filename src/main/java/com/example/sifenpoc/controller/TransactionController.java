@@ -1,10 +1,6 @@
 package com.example.sifenpoc.controller;
 
-import com.example.sifenpoc.entity.Expense;
-import com.example.sifenpoc.entity.Income;
-import com.example.sifenpoc.entity.PatientEntry;
 import com.example.sifenpoc.service.ReportService;
-import com.example.sifenpoc.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -16,14 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class TransactionController {
-
-    @Autowired
-    private TransactionService transactionService;
 
     @Autowired
     private ReportService reportService;

@@ -1,0 +1,329 @@
+<header class="header">
+    <div class="header-title">
+        <h1>Planilla Diaria</h1>
+        <p>Registro de movimientos y caja</p>
+    </div>
+</header>
+
+<div class="sub-nav">
+    <button class="tab-btn active" onclick="openTab(event, 'tab-pacientes')">Pacientes</button>
+    <button class="tab-btn" onclick="openTab(event, 'tab-ingresos')">Otros Ingresos</button>
+    <button class="tab-btn" onclick="openTab(event, 'tab-egresos')">Egresos</button>
+    <button class="tab-btn" onclick="openTab(event, 'tab-movimientos')">Planilla de Movimientos</button>
+</div>
+
+<!-- PACIENTES TAB -->
+<div id="tab-pacientes" class="tab-content active">
+    <div class="content-wrapper">
+        <!-- Formulario Izquierda -->
+        <div class="form-container">
+            <h3>Registrar Paciente</h3>
+            <form id="patientForm">
+                <input type="hidden" id="patientClientId">
+                <div class="form-group">
+                    <label>Fecha y Hora</label>
+                    <input type="datetime-local" id="patientDate" required>
+                    <script>document.getElementById('patientDate').value = new Date().toISOString().slice(0, 16);</script>
+                </div>
+                <div class="form-group">
+                    <label>Cliente</label>
+                    <input type="text" id="patientClientSearch" list="patientClientList"
+                        placeholder="Buscar por RUC o Nombre..." autocomplete="off">
+                    <datalist id="patientClientList"></datalist>
+                    <small style="display:block; margin-top:4px; color:#666;">
+                        <a href="#" onclick="openClientModal(); return false;">¿No existe? Registrar
+                            nuevo</a>
+                    </small>
+                </div>
+                <!-- Campos manuales si no hay cliente (opcional, pero mejor usar cliente siempre) -->
+                <div class="form-group">
+                    <label>Paciente (Nombre)</label>
+                    <input type="text" id="patientName" placeholder="Nombre del paciente">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" id="patientPhone">
+                </div>
+                <hr>
+                <div class="form-group">
+                    <label>Motivo Consulta</label>
+                    <textarea id="patientVisitReason" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Observación</label>
+                    <textarea id="patientObservation" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Monto (Gs)</label>
+                    <input type="number" id="patientAmount" required>
+                </div>
+                <div class="form-group">
+                    <label>Saldo (Gs)</label>
+                    <input type="number" id="patientBalance" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <select id="patientPaymentMethod" class="form-control">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                        <option value="Transferencia">Transferencia Bancaria</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Registrar</button>
+            </form>
+        </div>
+
+        <!-- Tabla Derecha -->
+        <div class="table-container">
+            <div class="table-controls">
+                <h3>Pacientes del Día</h3>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="date" id="patientsDateFrom" class="form-control" style="width: auto;"
+                        onchange="filterPatients()">
+                    <span>a</span>
+                    <input type="date" id="patientsDateTo" class="form-control" style="width: auto;"
+                        onchange="filterPatients()">
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Nombre</th>
+                        <th>Motivo</th>
+                        <th>Monto</th>
+                        <th>Saldo</th>
+                        <th>Teléfono</th>
+                    </tr>
+                </thead>
+                <tbody id="patientTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- INGRESOS TAB -->
+<div id="tab-ingresos" class="tab-content">
+    <div class="content-wrapper" style="grid-template-columns: 1fr 1fr;">
+        <!-- Caja Chica -->
+        <div class="form-container">
+            <h3 style="color: #2e7d32;">Apertura Caja Chica</h3>
+            <form id="pettyCashForm">
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="datetime-local" id="pettyCashDate" required>
+                    <script>document.getElementById('pettyCashDate').value = new Date().toISOString().slice(0, 16);</script>
+                </div>
+                <div class="form-group">
+                    <label>Monto Inicial</label>
+                    <input type="number" id="pettyCashAmount" required>
+                </div>
+                <div class="form-group">
+                    <label>Observación</label>
+                    <textarea id="pettyCashObservation" rows="2">Apertura de Caja</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <select id="pettyCashPaymentMethod" class="form-control">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                        <option value="Transferencia">Transferencia Bancaria</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="background: #2e7d32; width: 100%;">
+                    Abrir Caja
+                </button>
+            </form>
+        </div>
+
+        <!-- Otros Ingresos -->
+        <div class="form-container">
+            <h3 style="color: #1976d2;">Otros Ingresos</h3>
+            <form id="incomeForm">
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="datetime-local" id="incomeDate" required>
+                    <script>document.getElementById('incomeDate').value = new Date().toISOString().slice(0, 16);</script>
+                </div>
+                <div class="form-group">
+                    <label>Concepto</label>
+                    <select id="incomeConcept" class="form-control">
+                        <option value="Estudios Varios">Estudios Varios</option>
+                        <option value="Venta de Insumos">Venta de Insumos</option>
+                        <option value="Alquiler Consultorio">Alquiler Consultorio</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Monto</label>
+                    <input type="number" id="incomeAmount" required>
+                </div>
+                <div class="form-group">
+                    <label>Observación</label>
+                    <textarea id="incomeObservation" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <select id="incomePaymentMethod" class="form-control">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                        <option value="Transferencia">Transferencia Bancaria</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="background: #1976d2; width: 100%;">
+                    Registrar Ingreso
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- EGRESOS TAB -->
+<div id="tab-egresos" class="tab-content">
+    <div class="content-wrapper">
+        <div class="form-container">
+            <h3 style="color: #c62828;">Registrar Egreso</h3>
+            <form id="expenseForm">
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="datetime-local" id="expenseDate" required>
+                    <script>document.getElementById('expenseDate').value = new Date().toISOString().slice(0, 16);</script>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="expenseCategory" class="form-control">
+                        <option value="Insumos Médicos">Insumos Médicos</option>
+                        <option value="Limpieza">Limpieza</option>
+                        <option value="Mantenimiento">Mantenimiento</option>
+                        <option value="Servicios Básicos">Servicios Básicos</option>
+                        <option value="Pago Personal">Pago Personal</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Beneficiario / Concepto</label>
+                    <input type="text" id="expenseConcept" required>
+                </div>
+                <div class="form-group">
+                    <label>Monto</label>
+                    <input type="number" id="expenseAmount" required>
+                </div>
+                <div class="form-group">
+                    <label>Método de Pago</label>
+                    <select id="expensePaymentMethod" class="form-control">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                        <option value="Transferencia">Transferencia Bancaria</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="background: #c62828;">Registrar Egreso</button>
+            </form>
+        </div>
+
+        <div class="table-container">
+            <div class="table-controls">
+                <h3>Egresos Registrados</h3>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="date" id="expensesDateFrom" class="form-control" style="width: auto;"
+                        onchange="filterExpenses()">
+                    <span>a</span>
+                    <input type="date" id="expensesDateTo" class="form-control" style="width: auto;"
+                        onchange="filterExpenses()">
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Beneficiario</th>
+                        <th>Monto</th>
+                        <th>Categoría</th>
+                    </tr>
+                </thead>
+                <tbody id="expenseTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- PLANILLA MOVIMIENTOS TAB -->
+<div id="tab-movimientos" class="tab-content">
+    <div class="table-controls">
+        <div style="display:flex; gap:20px; align-items:center; flex:1;">
+            <div class="card-blue" style="padding:10px; border-radius:4px; display:flex; gap:10px; align-items:center;">
+                <i class="fas fa-wallet"></i>
+                <div>
+                    <small>Caja Chica</small>
+                    <div id="totalPettyCash" style="font-weight:bold;">0 Gs</div>
+                </div>
+            </div>
+            <div class="card-green"
+                style="padding:10px; border-radius:4px; display:flex; gap:10px; align-items:center;">
+                <i class="fas fa-coins"></i>
+                <div>
+                    <small>Ingresos Venta</small>
+                    <div id="totalRevenue" style="font-weight:bold;">0 Gs</div>
+                </div>
+            </div>
+            <div class="card-purple"
+                style="padding:10px; border-radius:4px; display:flex; gap:10px; align-items:center;">
+                <i class="fas fa-cash-register"></i>
+                <div>
+                    <small>Saldo Caja</small>
+                    <div id="totalCashBox" style="font-weight:bold;">0 Gs</div>
+                </div>
+            </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <input type="date" id="movementsDateFrom" class="form-control" style="width: auto;"
+                onchange="filterMovements()">
+            <span>a</span>
+            <input type="date" id="movementsDateTo" class="form-control" style="width: auto;"
+                onchange="filterMovements()">
+            <button class="btn-primary" onclick="openExportModal()">
+                <i class="fas fa-file-excel"></i> Exportar
+            </button>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha/Hora</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th>Motivo</th>
+                    <th>Usuario</th>
+                    <th>Método de Pago</th>
+                    <th style="text-align: right;">Ingreso</th>
+                    <th style="text-align: right;">Egreso</th>
+                    <th style="text-align: right;">Saldo</th>
+                </tr>
+            </thead>
+            <tbody id="movementsBody"></tbody>
+        </table>
+    </div>
+    <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+        <div style="background: white; padding: 10px; border-radius: 4px; border: 1px solid #eee;">
+            <strong>Pacientes del día:</strong>
+            <div class="table-container" style="max-height: 200px; overflow-y: auto; margin-top: 5px;">
+                <table style="font-size: 0.9em;">
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Nombre</th>
+                            <th>Motivo</th>
+                            <th>Usuario</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
