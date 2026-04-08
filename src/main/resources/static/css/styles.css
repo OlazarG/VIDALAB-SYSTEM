@@ -1,8 +1,11 @@
 :root {
-    --sidebar-bg: #1e2a4a;
-    --sidebar-text: #e0e6ed;
-    --active-color: #00c853;
-    --bg-color: #f4f6f8;
+    --sidebar-bg: #002B49;
+    /* Deep Navy Blue */
+    --sidebar-text: #ffffff;
+    --active-color: #00A4E4;
+    /* Cyan/Bright Blue */
+    --active-hover: #008cc9;
+    --bg-color: #F4F7F6;
     --text-color: #333;
     --card-bg: #ffffff;
     --border-color: #e0e0e0;
@@ -134,7 +137,7 @@ body {
 }
 
 .btn-primary:hover {
-    background-color: #00a844;
+    background-color: var(--active-hover);
 }
 
 .btn-secondary {
@@ -518,13 +521,51 @@ select:focus {
     text-align: left;
 }
 
+/* Prevent columns from collapsing too much */
+.excel-table th,
+.excel-table td {
+    min-width: 100px;
+    /* Base min-width for all columns */
+}
+
+/* Specific widths for content-heavy columns */
+.excel-table th:nth-child(1),
+.excel-table td:nth-child(1) {
+    min-width: 140px;
+}
+
+/* Fecha */
+.excel-table th:nth-child(3),
+.excel-table td:nth-child(3) {
+    min-width: 250px;
+}
+
+/* Descripción */
+.excel-table th:nth-child(4),
+.excel-table td:nth-child(4) {
+    min-width: 200px;
+}
+
+/* Motivo */
+.excel-table th:nth-child(5),
+.excel-table td:nth-child(5) {
+    min-width: 100px;
+}
+
+/* Usuario */
+.excel-table th:nth-child(6),
+.excel-table td:nth-child(6) {
+    min-width: 120px;
+}
+
+/* Método Pago */
+
 /* Limitar columna de descripción */
 .excel-table th:nth-child(3),
 .excel-table td:nth-child(3) {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    max-width: 300px;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .excel-table tr:nth-child(even) {
@@ -541,6 +582,7 @@ select:focus {
         transform: translateX(400px);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -552,6 +594,7 @@ select:focus {
         transform: translateX(0);
         opacity: 1;
     }
+
     to {
         transform: translateX(400px);
         opacity: 0;
@@ -560,11 +603,14 @@ select:focus {
 
 /* Closure Row Styles */
 .closure-row {
-    background-color: #fff3e0 !important; /* Light Orange */
-    color: #ef6c00 !important; /* Dark Orange Text */
+    background-color: #fff3e0 !important;
+    /* Light Orange */
+    color: #ef6c00 !important;
+    /* Dark Orange Text */
     font-weight: bold;
 }
 
 .closure-row td {
-    border-color: #ffe0b2 !important; /* Medium Orange Border */
+    border-color: #ffe0b2 !important;
+    /* Medium Orange Border */
 }

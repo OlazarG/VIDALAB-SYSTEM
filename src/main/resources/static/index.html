@@ -9,15 +9,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="js/specialties_config.js"></script>
+    <script src="js/specialties.js"></script>
 </head>
 
 <body>
 
     <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="brand">
-            <h2>VIDALAB</h2>
-            <span>Sistema de caja y facturacion</span>
+        <div class="brand" style="text-align: center;">
+            <img src="images/logo.jpg" alt="VIDA LAB"
+                style="max-width: 120px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.1);">
+            <h2 style="margin-top: 10px; font-size: 1.2rem;">VIDA LAB</h2>
         </div>
         <ul class="nav-menu">
             <li class="nav-item">
@@ -38,6 +41,11 @@
             </li>
 
 
+            <li class="nav-item">
+                <a class="nav-link" onclick="showSection('especialidades', this); initSpecialtiesSection()">
+                    <i class="fas fa-stethoscope"></i> Especialidades
+                </a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" onclick="showSection('usuarios', this)">
                     <i class="fas fa-user-shield"></i> Usuarios
@@ -153,12 +161,16 @@
             </header>
 
             <div class="tabs">
-                <button class="tab-btn active" onclick="openTab(event, 'tab-pacientes')">Pacientes</button>
-                <button class="tab-btn" onclick="openTab(event, 'tab-ingresos')">Ingresos</button>
-                <button class="tab-btn" onclick="openTab(event, 'tab-egresos')">Egresos</button>
+                <button class="tab-btn active"
+                    onclick="openTab(event, 'tab-pacientes'); initPatientsTab()">Pacientes</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-ingresos'); initIncomesTab()">Ingresos</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-egresos'); initExpensesTab()">Egresos</button>
                 <button class="tab-btn" onclick="openTab(event, 'tab-movimientos'); initMovementsTab()">Planilla de
                     movimientos</button>
-                <button class="tab-btn" onclick="openTab(event, 'tab-control-caja'); initCashControlTab()">Control de Caja</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-control-caja'); initCashControlTab()">Control de
+                    Caja</button>
+                <button class="tab-btn"
+                    onclick="openTab(event, 'tab-ecografias'); initUltrasoundTab()">Ecografías</button>
             </div>
 
             <!-- Tab Pacientes -->
@@ -169,7 +181,17 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label>Fecha</label>
+                                <input type="hidden" id="patientId">
                                 <input type="datetime-local" id="patientDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Categoría</label>
+                                <select id="patientCategory" class="form-control">
+                                    <option value="CONSULTA">Consulta</option>
+                                    <option value="ECOGRAFIA">Ecografía</option>
+                                    <option value="PROCEDIMIENTO">Procedimiento</option>
+                                    <option value="OTROS">Otros</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label>Cliente (Opcional - RUC/CI o Nombre)</label>
@@ -180,7 +202,10 @@
                             </div>
                             <div class="form-group" id="patientNameGroup">
                                 <label>Nombre Completo</label>
-                                <input type="text" id="patientName" placeholder="Nombre del paciente">
+
+                                <input type="text" id="patientName" list="patientNameList"
+                                    placeholder="Nombre del paciente (o seleccione de la lista)">
+                                <datalist id="patientNameList"></datalist>
                             </div>
                             <div class="form-group" id="patientPhoneGroup">
                                 <label>Teléfono</label>
@@ -188,11 +213,13 @@
                             </div>
                             <div class="form-group">
                                 <label>Monto (Gs)</label>
-                                <input type="text" inputmode="numeric" class="amount-input" id="patientAmount" required placeholder="0">
+                                <input type="text" inputmode="numeric" class="amount-input" id="patientAmount" required
+                                    placeholder="0">
                             </div>
                             <div class="form-group">
                                 <label>Saldo (Gs)</label>
-                                <input type="text" inputmode="numeric" class="amount-input" id="patientBalance" placeholder="0">
+                                <input type="text" inputmode="numeric" class="amount-input" id="patientBalance"
+                                    placeholder="0">
                             </div>
                             <div class="form-group">
                                 <label>Método de Pago</label>
@@ -200,12 +227,19 @@
                                     <option value="Efectivo">Efectivo</option>
                                     <option value="Tarjeta de credito">Tarjeta de credito</option>
                                     <option value="Tarjeta de debito"> Tarjeta de debito</option>
+                                    <option value="QR">QR</option>
+                                    <option value="Transferencia">Transferencia</option>
                                 </select>
                             </div>
                             <div class="form-group full-width">
                                 <label>Motivo de Visita</label>
                                 <textarea id="patientVisitReason" placeholder="Describa el motivo de la visita..."
                                     rows="3"></textarea>
+                            </div>
+                            <div class="form-group full-width" id="patientEditReasonGroup" style="display: none;">
+                                <label style="color: #e65100; font-weight: bold;">Motivo de Edición (Requerido)</label>
+                                <input type="text" id="patientEditReason"
+                                    placeholder="Explique por qué modifica este registro">
                             </div>
                             <div class="form-group">
                                 <label>Observación</label>
@@ -248,6 +282,25 @@
                         </thead>
                         <tbody id="patientTableBody"></tbody>
                     </table>
+                    <div class="pagination-container" id="pagination-pacientes"
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-top: 1px solid #ddd;">
+                        <div>
+                            <label>Mostrar: </label>
+                            <select onchange="changePageSize('pacientes', this.value)" id="pageSize-pacientes"
+                                style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button class="btn-secondary" onclick="prevPage('pacientes')" style="padding: 5px 10px;"><i
+                                    class="fas fa-chevron-left"></i></button>
+                            <span class="page-info" id="pageInfo-pacientes" style="font-weight: 500;">Página 1</span>
+                            <button class="btn-secondary" onclick="nextPage('pacientes')" style="padding: 5px 10px;"><i
+                                    class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -257,6 +310,26 @@
                     <h3>Registro de Otros Ingresos</h3>
                     <form id="incomeForm">
                         <div class="form-grid">
+                            <input type="hidden" id="incomeId">
+                            <div class="form-group full-width" style="margin-bottom: 15px;">
+                                <div
+                                    style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #e3f2fd; border-radius: 4px; border: 1px solid #bbdefb;">
+                                    <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                                        <input type="checkbox" id="isCashOpening" style="width: 20px; height: 20px;"
+                                            onchange="document.getElementById('isShiftHandover').checked = false;">
+                                        <label for="isCashOpening"
+                                            style="margin: 0; font-weight: 600; color: #0d47a1; cursor: pointer;">Es
+                                            Apertura de Caja</label>
+                                    </div>
+                                    <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                                        <input type="checkbox" id="isShiftHandover" style="width: 20px; height: 20px;"
+                                            onchange="document.getElementById('isCashOpening').checked = false;">
+                                        <label for="isShiftHandover"
+                                            style="margin: 0; font-weight: 600; color: #1565c0; cursor: pointer;">Es
+                                            Recepción de Turno (No suma saldo)</label>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="form-group">
                                 <label>Fecha</label>
                                 <input type="datetime-local" id="incomeDate" required>
@@ -267,7 +340,8 @@
                             </div>
                             <div class="form-group">
                                 <label>Monto (Gs)</label>
-                                <input type="text" inputmode="numeric" class="amount-input" id="incomeAmount" required placeholder="0">
+                                <input type="text" inputmode="numeric" class="amount-input" id="incomeAmount" required
+                                    placeholder="0">
                             </div>
                             <div class="form-group">
                                 <label>Método de Pago</label>
@@ -277,6 +351,10 @@
                                     <option value="Transferencia">Transferencia Bancaria</option>
                                     <option value="Cheque">Cheque</option>
                                 </select>
+                            </div>
+                            <div class="form-group" id="incomeEditReasonGroup" style="display: none;">
+                                <label style="color: #e65100; font-weight: bold;">Motivo de Edición (Requerido)</label>
+                                <input type="text" id="incomeEditReason" placeholder="Razón del cambio">
                             </div>
                             <div class="form-group">
                                 <label>Observación</label>
@@ -289,541 +367,438 @@
                         </button>
                     </form>
                 </div>
-            </div>
-            <!-- Removed Últimos Ingresos table as per request -->
-        </div>
 
-        <!-- Tab Control de Caja -->
-        <div id="tab-control-caja" class="tab-content">
-            <div class="form-container">
-                <h3>Apertura de Caja</h3>
-                <form id="aperturaCajaForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Fecha de Apertura</label>
-                            <input type="datetime-local" id="aperturaDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Monto Inicial (Gs)</label>
-                            <input type="text" inputmode="numeric" class="amount-input" id="aperturaAmount" required placeholder="0">
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Observación (Opcional)</label>
-                            <input type="text" id="aperturaObservation" placeholder="Ej: Fondo inicial para vueltos">
-                        </div>
+                <div class="table-container">
+                    <h3>Últimos Ingresos</h3>
+                    <div
+                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                        <label style="font-weight: 500;">Desde:</label>
+                        <input type="date" id="incomesDateFrom"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <label style="font-weight: 500;">Hasta:</label>
+                        <input type="date" id="incomesDateTo"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <button class="btn-primary" onclick="filterIncomes()"
+                            style="padding: 6px 16px; font-size: 0.9em;">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
                     </div>
-                    <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
-                        <i class="fas fa-cash-register"></i> Registrar Apertura
-                    </button>
-                </form>
-            </div>
-            <div class="form-container" style="margin-top: 2rem; border-top: 2px solid #eee; padding-top: 2rem;">
-                <h3>Registrar Cierre de Caja</h3>
-                <p>Ingrese los totales al momento del cierre. Este registro aparecerá en la Planilla de Movimientos.</p>
-                <form id="manualCashClosureForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Fecha de Cierre</label>
-                            <input type="datetime-local" id="manualClosureDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Total Ingresado (Gs)</label>
-                            <input type="text" inputmode="numeric" class="amount-input" id="manualClosureTotalIncome" required placeholder="Suma de todos los ingresos">
-                        </div>
-                        <div class="form-group">
-                            <label>Total Egresado (Gs)</label>
-                            <input type="text" inputmode="numeric" class="amount-input" id="manualClosureTotalExpense" required placeholder="Suma de todos los egresos">
-                        </div>
-                        <div class="form-group">
-                            <label>Total Efectivo Recaudado (Gs)</label>
-                            <input type="text" inputmode="numeric" class="amount-input" id="manualClosureCashCollected" required placeholder="Monto físico en efectivo">
-                        </div>
-                        <div class="form-group">
-                            <label>Saldo Final Caja Chica (Gs)</label>
-                            <input type="text" inputmode="numeric" class="amount-input" id="manualClosurePettyCash" required placeholder="Monto restante en caja chica">
-                        </div>
-                        <div class="form-group full-width">
-                            <label>Observaciones (Opcional)</label>
-                            <textarea id="manualClosureObservation" placeholder="Anotaciones sobre el cierre..." rows="3"></textarea>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
-                        <i class="fas fa-archive"></i> Registrar Cierre
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Tab Egresos -->
-        <div id="tab-egresos" class="tab-content">
-            <div class="form-container">
-                <h3>Registro de Egresos</h3>
-                <form id="expenseForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Fecha</label>
-                            <input type="datetime-local" id="expenseDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Concepto</label>
-                            <input type="text" id="expenseConcept" required placeholder="Ej: Pago de luz">
-                        </div>
-                        <div class="form-group">
-                            <label>Monto (Gs)</label>
-                            <input type="text" inputmode="numeric" class="amount-input" id="expenseAmount" required placeholder="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Método de Pago</label>
-                            <select id="expensePaymentMethod" class="form-control" required>
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
-                                <option value="Transferencia">Transferencia Bancaria</option>
-                                <option value="Cheque">Cheque</option>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Concepto / Observación</th>
+                                <th>Monto</th>
+                                <th>Método Pago</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incomeTableBody"></tbody>
+                    </table>
+                    <div class="pagination-container" id="pagination-ingresos"
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-top: 1px solid #ddd;">
+                        <div>
+                            <label>Mostrar: </label>
+                            <select onchange="changePageSize('ingresos', this.value)" id="pageSize-ingresos"
+                                style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Categoría</label>
-                            <select id="expenseCategory" class="form-control">
-                                <option value="Operativo">Operativo</option>
-                                <option value="Administrativo">Administrativo</option>
-                                <option value="Insumos">Insumos</option>
-                                <option value="CAJA_CHICA">Caja Chica (Vueltos/Emergencias)</option>
-                                <option value="Otros">Otros</option>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button class="btn-secondary" onclick="prevPage('ingresos')" style="padding: 5px 10px;"><i
+                                    class="fas fa-chevron-left"></i></button>
+                            <span class="page-info" id="pageInfo-ingresos" style="font-weight: 500;">Página 1</span>
+                            <button class="btn-secondary" onclick="nextPage('ingresos')" style="padding: 5px 10px;"><i
+                                    class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Control de Caja -->
+            <div id="tab-control-caja" class="tab-content">
+                <div class="form-container">
+                    <h3><i class="fas fa-cash-register"></i> Cierre de Caja Diario</h3>
+
+                    <!-- Dashboard de Control (Comparativo) -->
+                    <div class="closure-dashboard-grid"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                        <!-- Caja Chica -->
+                        <div class="closure-card"
+                            style="background: #e3f2fd; padding: 1.5rem; border-radius: 8px; border-left: 5px solid #2196f3;">
+                            <h4 style="margin: 0 0 0.5rem 0; color: #1565c0;">Dinero Físico Esperado</h4>
+                            <div class="closure-amount" id="expectedCash"
+                                style="font-size: 2rem; font-weight: bold; color: #0d47a1;">0 ₲</div>
+                            <small style="color: #5472d3;">(Ingresos Ef. - Egresos Ef.)</small>
+                        </div>
+
+                        <!-- Digital -->
+                        <div class="closure-card"
+                            style="background: #f3e5f5; padding: 1.5rem; border-radius: 8px; border-left: 5px solid #9c27b0;">
+                            <h4 style="margin: 0 0 0.5rem 0; color: #7b1fa2;">Total Digital Esperado</h4>
+                            <div class="closure-amount" id="expectedDigital"
+                                style="font-size: 2rem; font-weight: bold; color: #4a148c;">0 ₲</div>
+                            <small style="color: #aa00ff;">(POS, Transferencias, QR)</small>
+                        </div>
+
+                        <!-- Total General -->
+                        <div class="closure-card"
+                            style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; border-left: 5px solid #4caf50;">
+                            <h4 style="margin: 0 0 0.5rem 0; color: #2e7d32;">Saldo Teórico Total</h4>
+                            <div class="closure-amount" id="expectedTotal"
+                                style="font-size: 2rem; font-weight: bold; color: #1b5e20;">0 ₲</div>
+                            <small style="color: #388e3c;">Acumulado del día</small>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #eee;">
+                        <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                            <span
+                                style="background: #2c3e50; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9em;">1</span>
+                            Verificación de Efectivo
+                        </h3>
+                        <p style="margin-bottom: 1.5rem; color: #666;">Por favor, cuenta el dinero físico en tu caja e
+                            ingrésalo abajo. El sistema calculará automáticamente si hay diferencias.</p>
+
+                        <form id="autoCashClosureForm">
+                            <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                                <div class="form-group">
+                                    <label style="font-size: 1.1em; color: #333;">Efectivo Real en Caja (Lo que
+                                        contaste)</label>
+                                    <div class="input-wrapper" style="position: relative;">
+                                        <span
+                                            style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; font-weight: bold;">₲</span>
+                                        <input type="text" inputmode="numeric" class="amount-input" id="realCashInput"
+                                            required placeholder="0"
+                                            style="font-size: 1.5rem; padding-left: 35px; height: 60px; border: 2px solid #ccc;">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label style="font-size: 1.1em; color: #333;">Diferencia (Sobrante/Faltante)</label>
+                                    <div id="cashDifferenceDisplay"
+                                        style="height: 60px; display: flex; align-items: center; padding: 0 1rem; font-size: 1.5rem; font-weight: bold; border-radius: 4px; background: #f5f5f5; color: #999;">
+                                        -
+                                    </div>
+                                    <input type="hidden" id="cashDifferenceValue">
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label>Observaciones del Cierre</label>
+                                    <textarea id="closureObservation"
+                                        placeholder="Ej: Faltante de 500 Gs cubierto por cajero, o Sobrante por vuelto no reclamado..."
+                                        rows="3"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="actions" style="margin-top: 2rem; text-align: right;">
+                                <button type="submit" class="btn-primary" style="font-size: 1.1em; padding: 12px 30px;">
+                                    <i class="fas fa-check-circle"></i> Confirmar y Guardar Cierre
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #eee;">
+                    <h3 style="margin-bottom: 1rem; color: #444; font-size: 1.1rem;"><i class="fas fa-history"></i>
+                        Historial de Operaciones Hoy</h3>
+                    <div id="cashOperationsHistoryGrid"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                        <!-- Populated by JS -->
+                        <div
+                            style="grid-column: 1/-1; text-align: center; color: #999; padding: 20px; font-style: italic;">
+                            Cargando historial...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Egresos -->
+            <div id="tab-egresos" class="tab-content">
+                <div class="form-container">
+                    <h3>Registro de Egresos</h3>
+                    <form id="expenseForm">
+                        <div class="form-grid">
+                            <input type="hidden" id="expenseId">
+                            <div class="form-group">
+                                <label>Fecha</label>
+                                <input type="datetime-local" id="expenseDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Concepto</label>
+                                <input type="text" id="expenseConcept" required placeholder="Ej: Pago de luz">
+                            </div>
+                            <div class="form-group">
+                                <label>Monto (Gs)</label>
+                                <input type="text" inputmode="numeric" class="amount-input" id="expenseAmount" required
+                                    placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Método de Pago</label>
+                                <select id="expensePaymentMethod" class="form-control" required>
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+                                    <option value="Transferencia">Transferencia Bancaria</option>
+                                    <option value="Cheque">Cheque</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Categoría</label>
+                                <select id="expenseCategory" class="form-control">
+                                    <option value="Operativo">Operativo</option>
+                                    <option value="Administrativo">Administrativo</option>
+                                    <option value="Insumos">Insumos</option>
+                                    <option value="CAJA_CHICA">Caja Chica (Vueltos/Emergencias)</option>
+                                    <option value="Otros">Otros</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width" id="expenseEditReasonGroup" style="display: none;">
+                                <label style="color: #e65100; font-weight: bold;">Motivo de Edición (Requerido)</label>
+                                <input type="text" id="expenseEditReason" placeholder="Razón del cambio">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary"
+                            style="width: 100%; justify-content: center; margin-top: 1rem;">
+                            Registrar Egreso
+                        </button>
+                    </form>
+                </div>
+                <div class="table-container">
+                    <h3>Últimos Egresos</h3>
+                    <div
+                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                        <label style="font-weight: 500;">Desde:</label>
+                        <input type="date" id="expensesDateFrom"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <label style="font-weight: 500;">Hasta:</label>
+                        <input type="date" id="expensesDateTo"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <button class="btn-primary" onclick="filterExpenses()"
+                            style="padding: 6px 16px; font-size: 0.9em;">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                                <th>Método Pago</th>
+                                <th>Categoría</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody"></tbody>
+                    </table>
+                    <div class="pagination-container" id="pagination-egresos"
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-top: 1px solid #ddd;">
+                        <div>
+                            <label>Mostrar: </label>
+                            <select onchange="changePageSize('egresos', this.value)" id="pageSize-egresos"
+                                style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
                             </select>
                         </div>
-                    </div>
-                    <button type="submit" class="btn-primary"
-                        style="width: 100%; justify-content: center; margin-top: 1rem;">
-                        Registrar Egreso
-                    </button>
-                </form>
-            </div>
-            <div class="table-container">
-                <h3>Últimos Egresos</h3>
-                <div
-                    style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
-                    <label style="font-weight: 500;">Desde:</label>
-                    <input type="date" id="expensesDateFrom"
-                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                    <label style="font-weight: 500;">Hasta:</label>
-                    <input type="date" id="expensesDateTo"
-                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                    <button class="btn-primary" onclick="filterExpenses()" style="padding: 6px 16px; font-size: 0.9em;">
-                        <i class="fas fa-filter"></i> Filtrar
-                    </button>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Concepto</th>
-                            <th>Monto</th>
-                            <th>Categoría</th>
-                        </tr>
-                    </thead>
-                    <tbody id="expenseTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Tab Planilla de Movimientos -->
-        <div id="tab-movimientos" class="tab-content">
-            <div class="table-container" style="padding: 0; border: 1px solid #ccc; border-radius: 4px;">
-                <div
-                    style="background: #e0e0e0; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
-                    <span>Planilla General de Movimientos</span>
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                        <!-- Recaudación Neta: Total ingresos - Total egresos - Caja Chica -->
-                        <div style="background: #e8f5e9; padding: 8px 12px; border-radius: 8px; border: 1px solid #c8e6c9; flex: 1; min-width: 200px;">
-                            <div style="font-size: 0.85em; color: #2e7d32; font-weight: 500; margin-bottom: 3px;">Recaudación Neta</div>
-                            <span style="font-size: 1.2em; color: #2e7d32; font-weight: bold;">
-                                <span id="netRevenue">0 ₲</span>
-                            </span>
-                        </div>
-
-                        <!-- Total Ingresado: Solo ingresos, sin egresos -->
-                        <div style="background: #e1f5fe; padding: 8px 12px; border-radius: 8px; border: 1px solid #b3e5fc; flex: 1; min-width: 200px;">
-                            <div style="font-size: 0.85em; color: #01579b; font-weight: 500; margin-bottom: 5px;">Total Ingresado</div>
-                            <div style="font-size: 0.9em; margin-bottom: 3px;">
-                                <span style="color: #01579b; font-weight: bold;">Efectivo: </span>
-                                <span id="spanTotalIncomeCash" style="font-weight: bold; font-size: 1.1em;">0 ₲</span>
-                            </div>
-                            <div style="font-size: 0.9em;">
-                                <span style="color: #01579b; font-weight: bold;">POS: </span>
-                                <span id="spanTotalIncomePos" style="font-weight: bold; font-size: 1.1em;">0 ₲</span>
-                            </div>
-                        </div>
-
-                        <!-- Recaudación Efectivo: Ingresos efectivo - Egresos efectivo - Caja Chica -->
-                        <div style="background: #fff3e0; padding: 8px 12px; border-radius: 8px; border: 1px solid #ffe0b2; flex: 1; min-width: 200px;">
-                            <div style="font-size: 0.85em; color: #e65100; font-weight: 500; margin-bottom: 3px;">Recaudación Efectivo</div>
-                            <span style="font-size: 1.2em; color: #e65100; font-weight: bold;">
-                                <span id="cashRevenue">0 ₲</span>
-                            </span>
-                        </div>
-
-                        <!-- Total Egresos: dividido en Efectivo y Transferencia -->
-                        <div style="background: #ffebee; padding: 8px 12px; border-radius: 8px; border: 1px solid #f8bbd0; flex: 1; min-width: 200px;">
-                            <div style="font-size: 0.85em; color: #c62828; font-weight: 500; margin-bottom: 5px;">Total Egresos</div>
-                            <div style="font-size: 0.9em; margin-bottom: 3px;">
-                                <span style="color: #c62828; font-weight: bold;">Efectivo: </span>
-                                <span id="expenseCash" style="font-weight: bold;">0 ₲</span>
-                            </div>
-                            <div style="font-size: 0.9em;">
-                                <span style="color: #c62828; font-weight: bold;">Transfer: </span>
-                                <span id="expenseTransfer" style="font-weight: bold;">0 ₲</span>
-                            </div>
-                        </div>
-
-                        <!-- Saldo de Caja Chica: Apertura - Gastos Directos - Shortfall -->
-                        <div style="background: #fff3e0; padding: 8px 12px; border-radius: 8px; border: 1px solid #ffe0b2; flex: 1; min-width: 200px;">
-                            <div style="font-size: 0.85em; color: #e65100; font-weight: 500; margin-bottom: 3px;">Saldo Caja Chica</div>
-                            <span style="font-size: 1.2em; color: #e65100; font-weight: bold;">
-                                <span id="saldoCajaChica">0 ₲</span>
-                            </span>
-                        </div>
-
-                        <!-- Recaudación POS: Ingresos en Tarjeta, Transferencia, etc. -->
-                        <div style="background: #f3e5f5; padding: 8px 12px; border-radius: 8px; border: 1px solid #e1bee7; flex: 1; min-width: 200px;">
-                            <div style="font-size: 0.85em; color: #6a1b9a; font-weight: 500; margin-bottom: 3px;">Recaudación POS</div>
-                            <span style="font-size: 1.2em; color: #6a1b9a; font-weight: bold;">
-                                <span id="posRevenue">0 ₲</span>
-                            </span>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button class="btn-secondary" onclick="prevPage('egresos')" style="padding: 5px 10px;"><i
+                                    class="fas fa-chevron-left"></i></button>
+                            <span class="page-info" id="pageInfo-egresos" style="font-weight: 500;">Página 1</span>
+                            <button class="btn-secondary" onclick="nextPage('egresos')" style="padding: 5px 10px;"><i
+                                    class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
                 </div>
-                <div
-                    style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center;">
-                    <label style="font-weight: 500;">Desde:</label>
-                    <input type="date" id="movementsDateFrom"
-                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                    <label style="font-weight: 500;">Hasta:</label>
-                    <input type="date" id="movementsDateTo"
-                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
-                    <button class="btn-primary" onclick="filterMovements()"
-                        style="padding: 6px 16px; font-size: 0.9em;">
-                        <i class="fas fa-filter"></i> Filtrar
-                    </button>
-                </div>
-                <div style="overflow-x: auto; border: 1px solid #ccc; border-radius: 4px; max-height: 500px; overflow-y: auto;">
-                <table class="excel-table">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Tipo</th>
-                            <th>Descripción / Nombre</th>
-                            <th>Motivo</th>
-                            <th>Usuario</th>
-                            <th>Método Pago</th>
-                            <th>Ingreso</th>
-                            <th>Egreso</th>
-                            <th>Saldo Acumulado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="movementsBody"></tbody>
-                </table>
-                </div>
             </div>
 
-            <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">Planilla de Pacientes</h3>
-            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; border-radius: 4px;">
-                <table class="excel-table">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Cliente</th>
-                            <th>Motivo</th>
-                            <th>Usuario</th>
-                            <th>Monto</th>
-                        </tr>
-                    </thead>
-                    <tbody id="patientsBody"></tbody>
-                </table>
-            </div>
-            <script>
-                window.loadMovements = async function (dateFrom = null, dateTo = null) {
-                    try {
-                        const [patientsRes, incomesRes, expensesRes, clientsRes] = await Promise.all([
-                            fetch('/api/patient'),
-                            fetch('/api/income'),
-                            fetch('/api/expense'),
-                            fetch('/api/clientes')
-                        ]);
+            <!-- Tab Planilla de Movimientos -->
+            <div id="tab-movimientos" class="tab-content">
+                <div class="table-container"
+                    style="padding: 0; border: 1px solid #ccc; border-radius: 4px; position: relative;">
 
-                        const patients = await patientsRes.json();
-                        const incomes = await incomesRes.json();
-                        const expenses = await expensesRes.json();
-                        const clients = await clientsRes.json();
+                    <!-- Sticky Header con Totales -->
+                    <div id="sticky-totals-header"
+                        style="position: sticky; top: 0; background: #2c3e50; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        <div style="font-weight: 600; font-size: 1.1em;"><i class="fas fa-table"></i> Planilla de
+                            Movimientos</div>
+                        <div style="display: flex; gap: 20px; font-size: 0.95em;">
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Total Ingresos:</span>
+                                <span id="headerTotalIngresos" style="font-weight: bold; color: #b9f6ca;">0 ₲</span>
+                            </div>
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Total Egresos:</span>
+                                <span id="headerTotalEgresos" style="font-weight: bold; color: #ff8a80;">0 ₲</span>
+                            </div>
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Saldo Total:</span>
+                                <span id="headerSaldoTotal" style="font-weight: bold; color: white;">0 ₲</span>
+                            </div>
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Efectivo en Caja:</span>
+                                <span id="headerRecaudacionTotal" style="font-weight: bold; color: #b3e5fc;">0 ₲</span>
+                            </div>
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Ingreso Digital:</span>
+                                <span id="headerTotalDigital" style="font-weight: bold; color: #e1bee7;">0 ₲</span>
+                            </div>
+                        </div>
+                    </div>
 
-                        // Create client lookup map
-                        const clientsLookup = {};
-                        clients.forEach(c => {
-                            clientsLookup[c.id] = c.razonSocial;
-                        });
+                    <div
+                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center;">
+                        <label style="font-weight: 500;">Desde:</label>
+                        <input type="date" id="movementsDateFrom"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <label style="font-weight: 500;">Hasta:</label>
+                        <input type="date" id="movementsDateTo"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <button class="btn-primary" onclick="filterMovements()"
+                            style="padding: 6px 16px; font-size: 0.9em;">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
+                    <div
+                        style="overflow-x: auto; border: 1px solid #ccc; border-radius: 4px; max-height: 500px; overflow-y: auto;">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Descripción / Nombre</th>
+                                    <th>Motivo</th>
+                                    <th>Usuario</th>
+                                    <th>Método Pago</th>
+                                    <th>Ingreso</th>
+                                    <th>Egreso</th>
+                                    <th>Saldo Acumulado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movementsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
 
-                        let allMovements = [];
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">Planilla de Pacientes</h3>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; border-radius: 4px;">
+                    <table class="excel-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Motivo</th>
+                                <th>Usuario</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientsBody"></tbody>
+                    </table>
+                </div>
+                <script>
+                    // loadMovements logic is now in js/movements.js
 
-                        // Normalize Data
-                        patients.forEach(p => {
-                            const clientName = p.clientId ? clientsLookup[p.clientId] || 'Cliente Desconocido' : (p.nombre || 'Sin Cliente');
-                            allMovements.push({
-                                date: new Date(p.fechaIngreso),
-                                type: 'Ingreso',
-                                category: 'VENTA',
-                                description: clientName,
-                                motivo: p.motivoConsulta || '-',
-                                usuario: p.usuario || 'Sistema',
-                                paymentMethod: p.metodoPago || 'Efectivo',
-                                income: p.monto,
-                                expense: 0
-                            });
-                        });
+                    // Initialize movements tab with today's date
+                    window.initMovementsTab = function () {
+                        const now = new Date();
+                        const year = now.getFullYear();
+                        const month = String(now.getMonth() + 1).padStart(2, '0');
+                        const day = String(now.getDate()).padStart(2, '0');
+                        const todayStr = `${year}-${month}-${day}`;
 
-                        incomes.forEach(i => {
-                            if (i.tipo === 'CIERRE_CAJA') {
-                                try {
-                                    const details = JSON.parse(i.observacion);
-                                    const financialSummary = `Ing: ${formatCurrency(details.totalIngresado)}, Egr: ${formatCurrency(details.totalEgresado)}, Efec: ${formatCurrency(details.totalEfectivo)}, C.Chica: ${formatCurrency(details.cajaChica)}`;
-                                    allMovements.push({
-                                        date: new Date(i.fecha),
-                                        type: 'CIERRE DE CAJA',
-                                        category: 'CIERRE',
-                                        description: 'Cierre de Caja', // Shortened description
-                                        motivo: `${financialSummary} - ${details.observaciones || 'Sin observaciones'}`, // Detailed info in motivo
-                                        usuario: i.usuario || 'Sistema',
-                                        paymentMethod: 'N/A',
-                                        income: 0,
-                                        expense: 0,
-                                        isClosure: true // Flag for styling
-                                    });
-                                } catch (e) { /* Fallback for malformed data */
-                                    allMovements.push({ // Fallback for malformed data
-                                        date: new Date(i.fecha), type: 'CIERRE DE CAJA', category: 'CIERRE', description: 'Cierre de Caja (Error en datos)', motivo: '-', usuario: i.usuario || 'Sistema', paymentMethod: 'N/A', income: 0, expense: 0, isClosure: true
-                                    });
-                                }
-                            } else {
-                                allMovements.push({
-                                    date: new Date(i.fecha),
-                                    type: i.tipo === 'CAJA_CHICA' ? 'Caja Chica' : 'Otro Ingreso',
-                                    category: i.tipo || 'VENTA',
-                                    description: i.observacion,
-                                    usuario: i.usuario || 'Sistema',
-                                    paymentMethod: i.metodoPago || 'Efectivo',
-                                    income: i.monto,
-                                    expense: 0
-                                });
-                            }
-                        });
+                        document.getElementById('movementsDateFrom').value = todayStr;
+                        document.getElementById('movementsDateTo').value = todayStr;
 
-                        expenses.forEach(e => {
-                            allMovements.push({
-                                date: new Date(e.fecha),
-                                type: 'Egreso',
-                                category: e.categoria || 'EGRESO',
-                                description: e.beneficiario,
-                                usuario: e.usuario || 'Sistema',
-                                paymentMethod: e.metodoPago || 'Efectivo',
-                                income: 0,
-                                expense: e.monto
-                            });
-                        });
-
-                        // Sort by Date
-                        allMovements.sort((a, b) => a.date - b.date);
-
-                        // Filter by date range if provided
-                        if (dateFrom && dateTo) {
-                            allMovements = allMovements.filter(m => {
-                                return m.date >= dateFrom && m.date <= dateTo;
-                            });
-                        }
-
-                        const tbody = document.getElementById('movementsBody');
-                        tbody.innerHTML = '';
-                        let runningBalance = 0;
-                        
-                        // Variables para cálculos
-                        let saldoCajaChica = 0;         // Saldo final de caja chica
-                        let cajaChicaApertura = 0;      // Monto de apertura
-                        let cajaChicaGastos = 0;        // Gastos etiquetados como CAJA_CHICA
-                        let allIncome = 0;              // Total de ingresos (sin apertura caja chica)
-                        let cashIncome = 0;             // Ingresos en efectivo (sin apertura caja chica)
-                        let posIncome = 0;              // Ingresos en POS/No efectivo
-                        let cashExpense = 0;            // Egresos en efectivo (sin caja chica)
-                        let transferExpense = 0;        // Egresos en transferencia
-                        let allExpense = 0;             // Total egresos (sin caja chica)
-
-                        allMovements.forEach(m => {
-                            runningBalance += (m.income - m.expense);
-                            // Normalizar el método de pago para hacerlo más robusto
-                            const paymentMethodClean = (m.paymentMethod || '').trim().toLowerCase();
-
-                            // 1. CAJA CHICA: Identifica apertura de caja chica (tipo 'Caja Chica')
-                            if (m.type === 'Caja Chica' && m.income > 0) {
-                                cajaChicaApertura += m.income;
-                            }
-                            
-                            // 2. CAJA CHICA: Identifica gastos directos de caja chica (categoria CAJA_CHICA)
-                            if (m.category === 'CAJA_CHICA' && m.expense > 0) {
-                                cajaChicaGastos += m.expense;
-                            }
-                            
-                            // 3. INGRESOS: Solo cuenta ingresos que no sean apertura de caja chica
-                            if (m.type !== 'Caja Chica' && m.income > 0) {
-                                allIncome += m.income;
-                                // Si es tarjeta, transferencia o cheque, es POS; si no, es efectivo
-                                if (paymentMethodClean.includes('tarjeta') || paymentMethodClean.includes('transferencia') || paymentMethodClean.includes('cheque')) {
-                                    posIncome += m.income;
-                                } else {
-                                    cashIncome += m.income;
-                                }
-                            }
-                            // 4. EGRESOS: Solo cuenta egresos que no sean categoría CAJA_CHICA
-                            if (m.expense > 0 && m.category !== 'CAJA_CHICA') {
-                                allExpense += m.expense;
-                                if (paymentMethodClean === 'efectivo') {
-                                    cashExpense += m.expense;
-                                } else if (paymentMethodClean === 'transferencia') {
-                                    transferExpense += m.expense;
-                                }
-                            }
-
-                            const rowClass = m.isClosure ? 'class="closure-row"' : '';
-                            const row = `<tr ${rowClass}>
-                                    <td style="padding: 4px 8px;">${m.date.toLocaleString('es-PY', { hour12: false })}</td>
-                                    <td style="padding: 4px 8px;">${m.type}</td>
-                                    <td style="padding: 4px 8px;" title="${m.description}">${m.description}</td>
-                                    <td style="padding: 4px 8px;">${m.motivo || '-'}</td>
-                                    <td style="padding: 4px 8px;">${m.usuario}</td>
-                                    <td style="padding: 4px 8px;">${m.paymentMethod}</td>
-                                    <td style="padding: 4px 8px; color: ${m.income > 0 ? 'green' : 'inherit'}; text-align: right;">${m.income > 0 ? new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(m.income) : (m.isClosure ? ' ' : '-')}</td>
-                                    <td style="padding: 4px 8px; color: ${m.expense > 0 ? 'red' : 'inherit'}; text-align: right;">${m.expense > 0 ? new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(m.expense) : (m.isClosure ? ' ' : '-')}</td>
-                                    <td style="padding: 4px 8px; font-weight: bold; text-align: right;">${new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(runningBalance)}</td>
-                                </tr>`;
-                            tbody.innerHTML += row;
-                        });
-                        
-                        // CÁLCULO FINAL DE CAJA CHICA:
-                        // Saldo = Apertura - Gastos Directos - Shortfall
-                        // Shortfall = si hay falta de efectivo para egresos, se toma de caja chica
-                        const shortfallCajaChica = Math.max(0, cashExpense - cashIncome);
-                        saldoCajaChica = cajaChicaApertura - cajaChicaGastos - shortfallCajaChica;
-
-                        // CÁLCULOS DE RECAUDACIÓN (sin considerar caja chica pues ya está excluida)
-                        const netRevenue = allIncome - allExpense;
-                        const cashRevenue = cashIncome - cashExpense;
-                        
-                        // Total Ingresado: Solo suma de ingresos (sin egresos)
-                        const totalIncomeCashAmount = cashIncome;
-                        const totalIncomePosAmount = posIncome;
-
-                        // Actualizar spans en el HTML
-                        const formatter = new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' });
-                        
-                        // 
-                        const netRevenueEl = document.getElementById('netRevenue');
-                        if (netRevenueEl) netRevenueEl.textContent = formatter.format(netRevenue);
-                        
-                        // Recaudación Efectivo
-                        const cashRevenueEl = document.getElementById('cashRevenue');
-                        if (cashRevenueEl) cashRevenueEl.textContent = formatter.format(cashRevenue);
-                        
-                        // Total Egresos - Efectivo
-                        const expenseCashEl = document.getElementById('expenseCash');
-                        if (expenseCashEl) expenseCashEl.textContent = formatter.format(cashExpense);
-                        
-                        // Total Egresos - Transferencia
-                        const expenseTransferEl = document.getElementById('expenseTransfer');
-                        if (expenseTransferEl) expenseTransferEl.textContent = formatter.format(transferExpense);
-                        
-                        // **NUEVO ID: saldoCajaChica (en lugar de pettyCashAmount)**
-                        const saldoCajaChicaEl = document.getElementById('saldoCajaChica');
-                        if (saldoCajaChicaEl) saldoCajaChicaEl.textContent = formatter.format(saldoCajaChica);
-                        
-                        // Recaudación POS
-                        const posRevenueEl = document.getElementById('posRevenue');
-                        if (posRevenueEl) posRevenueEl.textContent = formatter.format(posIncome);
-                        
-                        // Total Ingresado - Efectivo (solo ingresos, sin egresos)
-                        const totalIncomeCashEl = document.getElementById('spanTotalIncomeCash');
-                        if (totalIncomeCashEl) totalIncomeCashEl.textContent = formatter.format(totalIncomeCashAmount);
-                        
-                        // Total Ingresado - POS (solo ingresos, sin egresos)
-                        const totalIncomePosEl = document.getElementById('spanTotalIncomePos');
-                        if (totalIncomePosEl) totalIncomePosEl.textContent = formatter.format(totalIncomePosAmount);
-                        
-                        // --- Populate Patients Table ---
-                        const patientsTbody = document.getElementById('patientsBody');
-                        patientsTbody.innerHTML = '';
-
-                        // reuse 'patients' array fetched above
-                        let filteredPatients = patients;
-
-                        // Filter by date range if provided
-                        if (dateFrom && dateTo) {
-                            filteredPatients = filteredPatients.filter(p => {
-                                const pDate = new Date(p.fechaIngreso);
-                                return pDate >= dateFrom && pDate <= dateTo;
-                            });
-                        }
-
-                        // Sort by date (descending usually better for lists, but matching movements asc for consistency)
-                        filteredPatients.sort((a, b) => new Date(a.fechaIngreso) - new Date(b.fechaIngreso));
-
-                        filteredPatients.forEach(p => {
-                            const clientName = p.clientId ? clientsLookup[p.clientId] || 'Cliente Desconocido' : '-';
-                            const row = `<tr>
-                                    <td style="padding: 4px 8px;">${new Date(p.fechaIngreso).toLocaleString('es-PY', { hour12: false })}</td>
-                                    <td style="padding: 4px 8px;">${clientName}</td>
-                                    <td style="padding: 4px 8px;">${p.motivoConsulta || '-'}</td>
-                                    <td style="padding: 4px 8px;">${p.usuario || 'Sistema'}</td>
-                                    <td style="padding: 4px 8px; text-align: right;">${new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(p.monto)}</td>
-                                </tr>`;
-                            patientsTbody.innerHTML += row;
-                        });
-
-                        document.getElementById('totalCashBox').textContent = new Intl.NumberFormat('es-PY', { style: 'currency', currency: 'PYG' }).format(runningBalance);
-
-                        // Store movements for export (unfiltered)
-                        if (!dateFrom && !dateTo) {
-                            allMovementsData = allMovements;
-                        }
-
-                    } catch (e) { console.error("Error loading movements:", e); }
-                }
-
-                // Initialize movements tab with today's date
-                window.initMovementsTab = function () {
-                    const today = new Date();
-                    const todayStr = today.toISOString().split('T')[0];
-
-                    document.getElementById('movementsDateFrom').value = todayStr;
-                    document.getElementById('movementsDateTo').value = todayStr;
-
-                    filterMovements();
-                }
-
-                // Filter movements by date range
-                window.filterMovements = function () {
-                    const dateFromStr = document.getElementById('movementsDateFrom').value;
-                    const dateToStr = document.getElementById('movementsDateTo').value;
-
-                    if (!dateFromStr || !dateToStr) {
-                        showNotification('Por favor seleccione ambas fechas', 'warning');
-                        return;
+                        filterMovements();
                     }
 
-                    // Create dates in local timezone
-                    const [yearFrom, monthFrom, dayFrom] = dateFromStr.split('-').map(Number);
-                    const dateFrom = new Date(yearFrom, monthFrom - 1, dayFrom, 0, 0, 0, 0);
+                    // Filter movements by date range
+                    window.filterMovements = function () {
+                        const dateFromStr = document.getElementById('movementsDateFrom').value;
+                        const dateToStr = document.getElementById('movementsDateTo').value;
 
-                    const [yearTo, monthTo, dayTo] = dateToStr.split('-').map(Number);
-                    const dateTo = new Date(yearTo, monthTo - 1, dayTo, 23, 59, 59, 999);
+                        if (!dateFromStr || !dateToStr) {
+                            showNotification('Por favor seleccione ambas fechas', 'warning');
+                            return;
+                        }
 
-                    loadMovements(dateFrom, dateTo);
-                }
-            </script>
-        </div>
+                        // Create dates in local timezone
+                        const [yearFrom, monthFrom, dayFrom] = dateFromStr.split('-').map(Number);
+                        const dateFrom = new Date(yearFrom, monthFrom - 1, dayFrom, 0, 0, 0, 0);
+
+                        const [yearTo, monthTo, dayTo] = dateToStr.split('-').map(Number);
+                        const dateTo = new Date(yearTo, monthTo - 1, dayTo, 23, 59, 59, 999);
+
+                        loadMovements(dateFrom, dateTo);
+                    }
+                </script>
+            </div>
+
+            <!-- Tab Ecografias -->
+            <div id="tab-ecografias" class="tab-content">
+                <div class="table-container"
+                    style="padding: 0; border: 1px solid #ccc; border-radius: 4px; position: relative;">
+
+                    <!-- Sticky Header con Totales Ecografia -->
+                    <div id="sticky-totals-ecografia"
+                        style="position: sticky; top: 0; background: #00838f; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        <div style="font-weight: 600; font-size: 1.1em;"><i class="fas fa-file-medical-alt"></i>
+                            Planilla
+                            de Ecografías</div>
+                        <div style="display: flex; gap: 20px; font-size: 0.95em;">
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Total Ingresos:</span>
+                                <span id="headerTotalEco" style="font-weight: bold; color: #b2ebf2;">0 ₲</span>
+                            </div>
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Pago Doctor (80%):</span>
+                                <span id="headerDoctorPay" style="font-weight: bold; color: #ffcc80;">0 ₲</span>
+                            </div>
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Retención (20%):</span>
+                                <span id="headerClinicShare" style="font-weight: bold; color: white;">0 ₲</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center;">
+                        <label style="font-weight: 500;">Desde:</label>
+                        <input type="date" id="ecoDateFrom"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <label style="font-weight: 500;">Hasta:</label>
+                        <input type="date" id="ecoDateTo"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <button class="btn-primary" onclick="fetchAndFilterUltrasounds()"
+                            style="padding: 6px 16px; font-size: 0.9em;">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
+
+                    <div
+                        style="overflow-x: auto; border: 1px solid #ccc; border-radius: 4px; max-height: 500px; overflow-y: auto;">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Paciente</th>
+                                    <th>Estudio / Motivo</th>
+                                    <th>Monto</th>
+                                    <th>Pago Doctor</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ecografiasBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
         </div>
 
@@ -861,6 +836,99 @@
                     </thead>
                     <tbody id="clientsTableBody"></tbody>
                 </table>
+                <div class="pagination-container" id="pagination-clientes"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f9f9f9; border-top: 1px solid #ddd;">
+                    <div>
+                        <label>Mostrar: </label>
+                        <select onchange="changePageSize('clientes', this.value)" id="pageSize-clientes"
+                            style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                            <option value="20" selected>20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="btn-secondary" onclick="prevPage('clientes')" style="padding: 5px 10px;"><i
+                                class="fas fa-chevron-left"></i></button>
+                        <span class="page-info" id="pageInfo-clientes" style="font-weight: 500;">Página 1</span>
+                        <button class="btn-secondary" onclick="nextPage('clientes')" style="padding: 5px 10px;"><i
+                                class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Especialidades Section -->
+        <div id="especialidades" class="section-view">
+            <header class="header">
+                <div class="header-title">
+                    <h1>Especialidades</h1>
+                    <p>Gestión de especialidades médicas</p>
+                </div>
+            </header>
+            <div class="content-wrapper" style="padding: 20px;">
+                <div class="tabs" id="specialtiesTabsContainer"
+                    style="margin-top: 10px; overflow-x: auto; white-space: nowrap; padding-bottom: 5px;">
+                    <!-- Tabs generated by JS -->
+                </div>
+
+                <div class="table-container"
+                    style="padding: 0; border: 1px solid #ccc; border-radius: 4px; position: relative;">
+
+                    <!-- Sticky Header con Totales -->
+                    <div id="sticky-totals-specialty"
+                        style="position: sticky; top: 0; background: #5e35b1; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        <div style="font-weight: 600; font-size: 1.1em;">
+                            <i class="fas fa-notes-medical"></i> <span id="specialtyInfoText">Seleccione
+                                Especialidad</span>
+                        </div>
+                        <div style="display: flex; gap: 20px; font-size: 0.95em;">
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Total Ingresos:</span>
+                                <span id="spTotalIngresos" style="font-weight: bold; color: #b39ddb;">0 ₲</span>
+                            </div>
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Pago Doctor:</span>
+                                <span id="spTotalDoctor" style="font-weight: bold; color: #ffcc80;">0 ₲</span>
+                            </div>
+                            <div>
+                                <span style="opacity: 0.8; font-size: 0.9em;">Clínica:</span>
+                                <span id="spTotalClinica" style="font-weight: bold; color: white;">0 ₲</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ccc; display: flex; gap: 15px; align-items: center;">
+                        <label style="font-weight: 500;">Desde:</label>
+                        <input type="date" id="specialtyDateFrom"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <label style="font-weight: 500;">Hasta:</label>
+                        <input type="date" id="specialtyDateTo"
+                            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                        <button class="btn-primary" onclick="filterSpecialty()"
+                            style="padding: 6px 16px; font-size: 0.9em;">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
+
+                    <div
+                        style="overflow-x: auto; border: 1px solid #ccc; border-radius: 4px; max-height: 500px; overflow-y: auto;">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Paciente</th>
+                                    <th>Motivo</th>
+                                    <th>Monto</th>
+                                    <th>Pago Doctor</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody id="specialtyTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1088,14 +1156,16 @@
                 </div>
                 <div class="form-group full-width">
                     <label>Motivo de Visita</label>
-                    <textarea id="visitMotivo" placeholder="Describa el motivo de la visita..." rows="3" class="form-control"></textarea>
+                    <textarea id="visitMotivo" placeholder="Describa el motivo de la visita..." rows="3"
+                        class="form-control"></textarea>
                 </div>
                 <div class="form-group full-width">
                     <label>Observación</label>
                     <input type="text" id="visitObservacion" placeholder="Opcional" class="form-control">
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
-                    <button type="button" class="btn-secondary" onclick="closePatientVisitModal()" style="flex: 1;">Cancelar</button>
+                    <button type="button" class="btn-secondary" onclick="closePatientVisitModal()"
+                        style="flex: 1;">Cancelar</button>
                     <button type="submit" class="btn-primary" style="flex: 1;">Guardar Cambios</button>
                 </div>
             </form>
@@ -1155,119 +1225,84 @@
             initExpensesTab();
         }
 
-        async function loadPatients(dateFrom = null, dateTo = null) {
-            try {
-                const [patientsRes, clientsRes] = await Promise.all([
-                    fetch('/api/patient'),
-                    fetch('/api/clientes')
-                ]);
-                if (!patientsRes.ok) throw new Error('Failed to load patients');
-                let patients = await patientsRes.json();
-                const clients = await clientsRes.json();
+        // function loadPatients() moved to movements.js
 
-                // Store all patients globally for editing
-                allPatientsData = patients;
+        // function loadIncomes() moved to movements.js
 
-                // Create client lookup
-                clientsLookup = {};
-                clients.forEach(c => {
-                    clientsLookup[c.id] = { nombre: c.razonSocial, telefono: c.telefono };
-                });
+        // function loadExpenses() moved to movements.js
 
-                // Sort by date descending
-                patients.sort((a, b) => new Date(b.fechaIngreso) - new Date(a.fechaIngreso));
+        // --- Edit Functions ---
+        window.editIncome = function (id) {
+            const item = window.allIncomesData.find(i => i.id === id);
+            if (!item) return;
 
-                // Filter by date range
-                if (dateFrom && dateTo) {
-                    patients = patients.filter(p => {
-                        const pDate = new Date(p.fechaIngreso);
-                        return pDate >= dateFrom && pDate <= dateTo;
-                    });
-                }
+            document.getElementById('incomeId').value = item.id;
+            // Date format for datetime-local is YYYY-MM-DDTHH:MM
+            // For standard date input, it is YYYY-MM-DD if type=date.
+            // Income date is typically datetime-local in form? Check form.
+            // Form input id='incomeDate' type='datetime-local'.
+            document.getElementById('incomeDate').value = item.fecha ? item.fecha.substring(0, 16) : '';
 
-                const tbody = document.getElementById('patientTableBody');
-                tbody.innerHTML = '';
-                patients.forEach(item => {
-                    const nombre = item.clientId && clientsLookup[item.clientId]
-                        ? clientsLookup[item.clientId].nombre
-                        : (item.nombre || 'N/A');
-                    const telefono = item.clientId && clientsLookup[item.clientId]
-                        ? clientsLookup[item.clientId].telefono
-                        : (item.telefono || '-');
-                    const row = `<tr>
-                        <td>${formatDate(item.fechaIngreso)}</td>
-                        <td>${nombre}</td>
-                        <td>${item.motivoConsulta || '-'}</td>
-                        <td>${formatCurrency(item.monto)}</td>
-                        <td>${formatCurrency(item.saldo)}</td>
-                        <td>${telefono}</td>
-                        <td>${item.metodoPago || 'Efectivo'}</td>
-                        <td class="actions">
-                            <i class="fas fa-edit action-btn" title="Editar Motivo/Obs." onclick="openPatientVisitModal(${item.id})"></i>
-                        </td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-            } catch (e) { console.error(e); }
+            // Concepto / Observacion split?
+            // Ideally we should have kept them separate in backend or strict format.
+            // Let's just put full observation in Concept for simplicity or try to split.
+            const fullObs = item.observacion || '';
+            const split = fullObs.split(' - ');
+            if (split.length > 1) {
+                document.getElementById('incomeConcept').value = split[0];
+                document.getElementById('incomeObservation').value = split.slice(1).join(' - ');
+            } else {
+                document.getElementById('incomeConcept').value = fullObs;
+                document.getElementById('incomeObservation').value = '';
+            }
+
+            document.getElementById('incomeAmount').value = item.monto ? item.monto.toLocaleString('es-PY') : '';
+            document.getElementById('incomePaymentMethod').value = item.metodoPago || 'Efectivo';
+
+            // Disable checkboxes for edit mode or hide them? 
+            document.getElementById('isCashOpening').disabled = true;
+            document.getElementById('isShiftHandover').disabled = true;
+
+            document.getElementById('incomeDate').scrollIntoView({ behavior: 'smooth' });
+            showNotification('Editando Ingreso... (Modifique y Guarde)', 'info');
+
+            // Show Edit Reason
+            document.getElementById('incomeEditReasonGroup').style.display = 'block';
+            document.getElementById('incomeEditReason').required = true;
+            document.getElementById('incomeEditReason').value = '';
+
+            const btn = document.querySelector('#incomeForm button[type="submit"]');
+            if (btn) btn.textContent = 'Actualizar Ingreso';
         }
 
-        async function loadIncomes(dateFrom = null, dateTo = null) {
-            // Function neutralized as per request to remove Incomes Table
+        window.editExpense = function (id) {
+            const item = window.allExpensesData.find(e => e.id === id);
+            if (!item) return;
+
+            document.getElementById('expenseId').value = item.id;
+            document.getElementById('expenseDate').value = item.fecha ? item.fecha.substring(0, 16) : '';
+            document.getElementById('expenseConcept').value = item.beneficiario || ''; // Beneficiario is used for concept/payee
+            document.getElementById('expenseAmount').value = item.monto ? item.monto.toLocaleString('es-PY') : '';
+
+            // Payment method
+            document.getElementById('expensePaymentMethod').value = item.metodoPago || 'Efectivo';
+
+            // Category
+            document.getElementById('expenseCategory').value = item.categoria || 'GASTOS_VARIOS';
+
+            document.getElementById('expenseDate').scrollIntoView({ behavior: 'smooth' });
+            showNotification('Editando Egreso... (Modifique y Guarde)', 'info');
+
+            // Show Edit Reason
+            document.getElementById('expenseEditReasonGroup').style.display = 'block';
+            document.getElementById('expenseEditReason').required = true;
+            document.getElementById('expenseEditReason').value = '';
+
+            const btn = document.querySelector('#expenseForm button[type="submit"]');
+            if (btn) btn.textContent = 'Actualizar Egreso';
         }
 
-        async function loadExpenses(dateFrom = null, dateTo = null) {
-            try {
-                const res = await fetch('/api/expense');
-                if (!res.ok) throw new Error('Failed to load expenses');
-                let data = await res.json();
-                // Sort by date descending
-                data.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-                // Filter by date range
-                if (dateFrom && dateTo) {
-                    data = data.filter(e => {
-                        const eDate = new Date(e.fecha);
-                        return eDate >= dateFrom && eDate <= dateTo;
-                    });
-                }
-
-                const tbody = document.getElementById('expenseTableBody');
-                tbody.innerHTML = '';
-                data.forEach(item => {
-                    const row = `<tr>
-                        <td>${formatDate(item.fecha)}</td>
-                        <td>${item.beneficiario}</td>
-                        <td>${formatCurrency(item.monto)}</td>
-                        <td>${item.beneficiario.match(/\(([^)]+)\)/)?.[1] || '-'}</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-            } catch (e) { console.error(e); }
-        }
-
-        async function loadClientsTable() {
-            try {
-                const res = await fetch('/api/clientes');
-                if (!res.ok) throw new Error('Failed to load clients');
-                const clients = await res.json();
-                allClientsData = clients;
-                const tbody = document.getElementById('clientsTableBody');
-                tbody.innerHTML = '';
-                clients.forEach(c => {
-                    const row = `<tr style="cursor: pointer;" onclick="openVisitHistory(${c.id}, '${c.razonSocial}')">
-                        <td>${c.ruc}</td>
-                        <td>${c.razonSocial}</td>
-                        <td>${c.email || '-'}</td>
-                        <td>${c.telefono || '-'}</td>
-                        <td class="actions">
-                            <i class="fas fa-edit action-btn" title="Editar" onclick="editClient(event, ${c.id})"></i>
-                            <i class="fas fa-trash action-btn action-delete" title="Eliminar" onclick="deleteClient(event, ${c.id})"></i>
-                        </td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-            } catch (e) { console.error(e); }
-        }
+        // function loadClientsTable() moved to movements.js
 
         // --- Form Submissions ---
 
@@ -1315,68 +1350,209 @@
                 }
             }
         }
-
+        // --- Patient Form Logic ---
         document.getElementById('patientForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const clientId = document.getElementById('patientClientId').value;
-            const patientName = document.getElementById('patientName').value;
-            const patientPhone = document.getElementById('patientPhone').value;
+            const id = document.getElementById('patientId').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
 
-            // Validate: either client OR name+phone required
-            if (!clientId && !patientName) {
-                showNotification('Por favor seleccione un cliente o ingrese el nombre del paciente', 'warning');
-                return;
+            // Check for edit reason if updating
+            let editReason = null;
+            if (id) {
+                editReason = document.getElementById('patientEditReason').value;
+                if (!editReason || editReason.trim() === "") {
+                    if (typeof showNotification === 'function') showNotification('El motivo de edición es requerido', 'error');
+                    else alert('El motivo de edición es requerido');
+                    document.getElementById('patientEditReason').focus();
+                    return;
+                }
             }
 
             const data = {
                 fechaIngreso: document.getElementById('patientDate').value,
+                clientId: document.getElementById('patientClientId').value || null,
+                nombre: document.getElementById('patientName').value,
+                telefono: document.getElementById('patientPhone').value,
+                motivoConsulta: document.getElementById('patientVisitReason').value,
                 monto: cleanFormattedNumber(document.getElementById('patientAmount').value),
                 saldo: cleanFormattedNumber(document.getElementById('patientBalance').value),
                 observacion: document.getElementById('patientObservation').value,
-                metodoPago: document.getElementById('patientPaymentMethod').value
+                metodoPago: document.getElementById('patientPaymentMethod').value,
+                categoria: document.getElementById('patientCategory').value,
+                motivoEdicion: editReason // Send reason
             };
 
-            // Add client-specific or standalone patient fields
-            if (clientId) {
-                data.clientId = parseInt(clientId);
-                data.motivoConsulta = document.getElementById('patientVisitReason').value;
-            } else {
-                data.nombre = patientName;
-                data.telefono = patientPhone;
+            // Validate: either client OR name+phone required
+            if (!data.clientId && !data.nombre) {
+                showNotification('Por favor seleccione un cliente o ingrese el nombre del paciente', 'warning');
+                return;
             }
             console.log('Sending patient data:', JSON.stringify(data));
-            await postData('/api/patient', data, (savedRecord) => {
-                console.log('DEBUG: Server saved record:', savedRecord);
-                loadPatients();
-            });
-            e.target.reset();
-            document.getElementById('patientClientId').value = '';
+
+            // Check if we are editing (hidden ID field)
+            const editingId = document.getElementById('patientId').value;
+
+            if (editingId) {
+                // UPDATE (PUT)
+                data.id = parseInt(editingId);
+                try {
+                    const response = await fetch(`/api/patient/${editingId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (response.ok) {
+                        showNotification('Registro actualizado correctamente', 'success');
+                        filterPatients(); // Preserve filter
+                        e.target.reset();
+                        document.getElementById('patientClientId').value = '';
+                        document.getElementById('patientId').value = ''; // Clear ID after update
+                        document.getElementById('patientEditReasonGroup').style.display = 'none';
+                        document.getElementById('patientEditReason').required = false;
+                        const btn = document.querySelector('#patientForm button[type="submit"]');
+                        if (btn) btn.textContent = 'Registrar Paciente';
+                    } else {
+                        const err = await response.text();
+                        showNotification(err || 'Error al actualizar', 'error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showNotification('Error de conexión', 'error');
+                }
+            } else {
+                // CREATE (POST)
+                await postData('/api/patient', data, (savedRecord) => {
+                    console.log('DEBUG: Server saved record:', savedRecord);
+                    filterPatients(); // Preserve filter
+                });
+                e.target.reset();
+                document.getElementById('patientClientId').value = '';
+                document.getElementById('patientId').value = '';
+                document.getElementById('patientEditReasonGroup').style.display = 'none';
+            }
         });
 
         document.getElementById('incomeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const id = document.getElementById('incomeId').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            let editReason = null;
+            if (id) {
+                editReason = document.getElementById('incomeEditReason').value;
+                if (!editReason || editReason.trim() === "") {
+                    showNotification('El motivo de edición es requerido', 'error');
+                    document.getElementById('incomeEditReason').focus();
+                    return;
+                }
+            }
+
             const data = {
-                fecha: document.getElementById('incomeDate').value,
-                observacion: document.getElementById('incomeConcept').value + (document.getElementById('incomeObservation').value ? ' - ' + document.getElementById('incomeObservation').value : ''),
+                fecha: document.getElementById('incomeDate').value, // Assuming datetime-local
                 monto: cleanFormattedNumber(document.getElementById('incomeAmount').value),
-                tipo: 'VENTA',
-                metodoPago: document.getElementById('incomePaymentMethod').value
+                observacion: document.getElementById('incomeConcept').value + (document.getElementById('incomeObservation').value ? ' - ' + document.getElementById('incomeObservation').value : ''),
+                metodoPago: document.getElementById('incomePaymentMethod').value,
+                tipo: document.getElementById('isShiftHandover').checked ? 'RECEPCION_TURNO' : (document.getElementById('isCashOpening').checked ? 'CAJA_CHICA' : 'VENTA'), // Prioritize Handover > Opening > Venta
+                motivoEdicion: editReason
             };
-            await postData('/api/income', data, loadIncomes);
-            e.target.reset();
+
+            // Check for edit
+            if (id) {
+                // Reset type just in case logic above overrides it?
+                // In edit mode we effectively disabled the checkboxes so type should be kept from original or just send what we have.
+                // We don't want to change type 'VENTA' to 'CAJA_CHICA' by mistake.
+                // Actually, if we edit, we should probably keep existing type from backend or assume we are not changing it via checkboxes if disabled.
+                // We only allow editing standard incomes. So type is effectively 'VENTA' or whatever it was.
+                // However, the checkboxes logic sets 'type'.
+                // If ID exists, we use PUT. The backend update logic accepts 'ingreso'.
+                // Let's rely on 'data.tipo' being set correctly here?
+                // If checkboxes are disabled (false), type becomes 'VENTA'.
+                // If the original item was 'VENTA', this is fine.
+                // If original was something else editable, we might overwrite it.
+                // But we only allow editing 'VENTA' basically (non-special types).
+
+                // Perform PUT
+                try {
+                    const res = await fetch(`/api/income/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (res.ok) {
+                        showNotification('Ingreso actualizado', 'success');
+                        filterIncomes(); // Use filter to keep current date range
+                        e.target.reset();
+                        document.getElementById('incomeId').value = '';
+                        document.getElementById('isCashOpening').disabled = false;
+                        document.getElementById('isShiftHandover').disabled = false;
+
+                        document.getElementById('incomeEditReasonGroup').style.display = 'none';
+                        document.getElementById('incomeEditReason').required = false;
+
+                        const btn = e.target.querySelector('button[type="submit"]');
+                        if (btn) btn.textContent = 'Guardar Ingreso';
+                    } else {
+                        showNotification('Error al actualizar ingreso', 'error');
+                    }
+                } catch (err) { console.error(err); }
+            } else {
+                await postData('/api/income', data, filterIncomes); // Use filter callback
+                e.target.reset();
+                document.getElementById('isCashOpening').checked = false;
+                document.getElementById('isShiftHandover').checked = false;
+
+                document.getElementById('incomeEditReasonGroup').style.display = 'none';
+            }
         });
 
         document.getElementById('expenseForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const id = document.getElementById('expenseId').value;
+
+            if (id) {
+                const editReason = document.getElementById('expenseEditReason').value;
+                if (!editReason || editReason.trim() === "") {
+                    showNotification('El motivo de edición es requerido', 'error');
+                    document.getElementById('expenseEditReason').focus();
+                    return;
+                }
+            }
+
             const data = {
                 fecha: document.getElementById('expenseDate').value,
                 beneficiario: document.getElementById('expenseConcept').value,
                 monto: cleanFormattedNumber(document.getElementById('expenseAmount').value),
                 metodoPago: document.getElementById('expensePaymentMethod').value,
-                categoria: document.getElementById('expenseCategory').value
+                categoria: document.getElementById('expenseCategory').value,
+                motivoEdicion: document.getElementById('expenseEditReason').value
             };
-            await postData('/api/expense', data, loadExpenses);
-            e.target.reset();
+
+            if (id) {
+                try {
+                    const res = await fetch(`/api/expense/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    if (res.ok) {
+                        showNotification('Egreso actualizado', 'success');
+                        filterExpenses(); // Use filter
+                        e.target.reset();
+                        document.getElementById('expenseId').value = '';
+                        document.getElementById('expenseEditReasonGroup').style.display = 'none';
+                        document.getElementById('expenseEditReason').required = false;
+
+                        const btn = e.target.querySelector('button[type="submit"]');
+                        if (btn) btn.textContent = 'Guardar Egreso';
+                    } else {
+                        showNotification('Error al actualizar egreso', 'error');
+                    }
+                } catch (err) { console.error(err); }
+            } else {
+                await postData('/api/expense', data, filterExpenses); // Use filter callback
+                e.target.reset();
+                document.getElementById('expenseEditReasonGroup').style.display = 'none';
+            }
         });
 
         document.getElementById('clientModalForm').addEventListener('submit', async (e) => {
@@ -1481,10 +1657,160 @@
             if (isNaN(number)) return '';
             return new Intl.NumberFormat('es-PY').format(number);
         }
+        // ============ HELPER FUNCTIONS ============
+        function cleanFormattedNumber(str) {
+            if (!str) return 0;
+            return parseFloat(str.replace(/\./g, '')) || 0;
+        }
 
-        function cleanFormattedNumber(value) {
-            if (!value || typeof value !== 'string') return 0;
-            return parseFloat(value.replace(/\./g, '')) || 0;
+        function formatCurrencyInput(input) {
+            // Remove non-numeric chars except keeping implicit logical structure if needed, 
+            // but for simple integers/decimals:
+            let val = input.value.replace(/\D/g, '');
+            if (val === '') {
+                input.value = '';
+                return;
+            }
+            // Format with thousands separator
+            const num = parseInt(val, 10);
+            input.value = num.toLocaleString('es-PY');
+        }
+
+        // Attach formatters to amount inputs
+        const amountInputs = [
+            'incomeAmount',
+            'expenseAmount',
+            'patientAmount',
+            'patientBalance',
+            'manualClosureTotalIncome',
+            'manualClosureTotalExpense',
+            'manualClosureCashCollected',
+            'manualClosurePettyCash',
+            'realCashInput'
+        ];
+
+        amountInputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', function (e) {
+                    formatCurrencyInput(e.target);
+                });
+            }
+        });
+
+
+        // ============ PATIENT ACTIONS ============
+        window.editPatient = function (event, id) {
+            event.preventDefault(); // Prevent row click or other bubbles
+            // Use window.allMovementsData or window.allPatientsData if available, 
+            // but for now let's rely on the grid content or fetch fresh.
+            // Best approach: fetch specific patient or find in local array.
+
+            // Assuming we display patients from 'window.currentPatientsList' (we need to ensure this is set in loadPatients)
+            // If not, let's fetch individual.
+
+            // A simpler way if we have the data in the grid:
+            // But we don't have the 'metodoPago' visible in the Patient Grid usually (it's in movements).
+            // So we fetch logic.
+
+            // To be safe, let's look it up in a potentially global list or fetch.
+            // Since we don't have a direct 'getById' exposed in JS easily without fetch, let's assume we can fetch.
+            // However, to be faster, let's look at how we populated the table. 
+            // We can attach the whole object to the edit button data-attribute?
+            // Or just fetch.
+
+            // Let's implement a quick fetch for safety and freshness.
+            fetch(`/api/patient`) // getting all is inefficient but acceptable for small scale POC, better finding in local cache
+                .then(r => r.json())
+                .then(patients => {
+                    const p = patients.find(x => x.id === id);
+                    if (p) {
+                        document.getElementById('patientId').value = p.id;
+                        document.getElementById('patientDate').value = p.fechaIngreso.substring(0, 16);
+
+                        // Handle client/name
+                        // Handle client/name
+                        // Handle client/name
+                        document.getElementById('patientClientId').value = p.clientId || '';
+
+                        // Try to find client in global list
+                        let foundClient = null;
+                        if (p.clientId && window.allClientsData) {
+                            foundClient = window.allClientsData.find(c => c.id === p.clientId);
+                        }
+
+                        if (foundClient) {
+                            document.getElementById('patientClientSearch').value = foundClient.ruc;
+                            document.getElementById('patientName').value = foundClient.razonSocial;
+                            document.getElementById('patientPhone').value = foundClient.telefono || '';
+                        } else {
+                            // Fallback: use stored values if any, or empty
+                            document.getElementById('patientClientSearch').value = p.clientId || '';
+                            // If p.clientId is just an ID like 44, showing it in search box (which expects RUC) is weird but better than nothing?
+                            // User complained they didn't see ID. 
+                            // If we can't find the client object, maybe we shouldn't put the ID in RUC field.
+                            // But let's leave it for now or try to use p.nombre if client fetch failed.
+
+                            document.getElementById('patientName').value = p.nombre || '';
+                            document.getElementById('patientPhone').value = p.telefono || '';
+                        }
+
+
+                        document.getElementById('patientVisitReason').value = p.motivoConsulta || '';
+                        document.getElementById('patientObservation').value = p.observacion || '';
+                        document.getElementById('patientPaymentMethod').value = p.metodoPago || 'Efectivo';
+                        document.getElementById('patientCategory').value = p.categoria || 'CONSULTA';
+
+                        document.getElementById('patientAmount').value = p.monto ? p.monto.toLocaleString('es-PY') : '';
+                        document.getElementById('patientBalance').value = p.saldo ? p.saldo.toLocaleString('es-PY') : '';
+
+                        // Switch Tab Logic
+                        // Find the button that opens 'tab-pacientes'
+                        const tabBtn = document.querySelector('button[onclick*="tab-pacientes"]');
+                        if (tabBtn) {
+                            tabBtn.click();
+                        } else {
+                            if (typeof openTab === 'function') {
+                                // Fallback mock event
+                                const mockBtn = document.createElement('button');
+                                mockBtn.className = 'tab-btn active'; // pretent active
+                                openTab({ currentTarget: mockBtn }, 'tab-pacientes');
+                            }
+                        }
+
+                        document.getElementById('patientDate').scrollIntoView({ behavior: 'smooth' });
+                        showNotification('Editando paciente... (Modifique y guarde)', 'info');
+
+                        // Show Edit Reason
+                        document.getElementById('patientEditReasonGroup').style.display = 'block';
+                        document.getElementById('patientEditReason').required = true;
+                        document.getElementById('patientEditReason').value = '';
+
+                        const btn = document.querySelector('#patientForm button[type="submit"]');
+                        if (btn) btn.textContent = 'Actualizar Paciente';
+                    }
+                });
+        }
+
+        window.deletePatient = async function (event, id) {
+            event.preventDefault(); // Stop propagation
+            if (!confirm('¿Está seguro de eliminar esta visita/paciente?')) return;
+
+            try {
+                // We need a DELETE endpoint. If it doesn't exist, we might fail.
+                // Assuming standard REST, try DELETE.
+                const res = await fetch(`/api/patient/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showNotification('Paciente eliminado', 'success');
+                    loadPatients();
+                    loadMovements();
+                } else {
+                    showNotification('Error eliminando paciente', 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showNotification('Error de conexión', 'error');
+            }
         }
 
         function initializeAmountFormatting() {
@@ -1750,168 +2076,239 @@
             }
         });
 
-        // Client Search Filter
-        let allClientsData = [];
-        window.filterClients = function () {
-            const searchTerm = document.getElementById('clientSearchInput').value.toLowerCase();
-            const tbody = document.getElementById('clientsTableBody');
-            tbody.innerHTML = '';
-            const filtered = allClientsData.filter(c => {
-                return (c.ruc && c.ruc.toLowerCase().includes(searchTerm)) ||
-                    (c.razonSocial && c.razonSocial.toLowerCase().includes(searchTerm)) ||
-                    (c.email && c.email.toLowerCase().includes(searchTerm)) ||
-                    (c.telefono && c.telefono.toLowerCase().includes(searchTerm));
-            });
-            filtered.forEach(c => {
-                const row = `<tr style="cursor: pointer;" onclick="openVisitHistory(${c.id}, '${c.razonSocial}')" >
-                    <td>${c.ruc}</td>
-                    <td>${c.razonSocial}</td>
-                    <td>${c.email || '-'}</td>
-                    <td>${c.telefono || '-'}</td>
-                    <td class="actions">
-                        <i class="fas fa-edit action-btn" title="Editar" onclick="editClient(event, ${c.id})"></i>
-                        <i class="fas fa-trash action-btn action-delete" title="Eliminar" onclick="deleteClient(event, ${c.id})"></i>
-                    </td>
-                </tr >`;
-                tbody.innerHTML += row;
+        // Client Search Filter Logic moved to movements.js and uses window.filterClients
+
+        // loadClientsForPatientForm and maps moved to movements.js to support pagination logic properly
+
+        // Patient client search handler (RUC)
+        const patientClientSearchInput = document.getElementById('patientClientSearch');
+        if (patientClientSearchInput) {
+            patientClientSearchInput.addEventListener('input', function (e) {
+                const val = e.target.value;
+                if (patientClientsMap[val]) {
+                    const client = patientClientsMap[val];
+                    document.getElementById('patientClientId').value = client.id;
+                    document.getElementById('patientName').value = client.razonSocial;
+                    document.getElementById('patientPhone').value = client.telefono || '';
+                } else {
+                    // Only clear if empty or intentional reset? 
+                    // Existing logic clears everything if not found in map, mimicking "must match valid RUC" behavior or just strictly syncing.
+                    document.getElementById('patientClientId').value = '';
+                    // Don't clear name/phone immediately if user is just typing a partial new RUC?
+                    // But the original code did:
+                    // document.getElementById('patientName').value = '';
+                    // document.getElementById('patientPhone').value = '';
+                    // We will keep it consistent for now.
+                    document.getElementById('patientClientId').value = '';
+                    document.getElementById('patientName').value = '';
+                    document.getElementById('patientPhone').value = '';
+                }
             });
         }
 
-        // Load clients for patient form autocomplete
-        let patientClientsMap = {};
-        async function loadClientsForPatientForm() {
-            try {
-                const res = await fetch('/api/clientes');
-                const clients = await res.json();
-                const datalist = document.getElementById('patientClientList');
-                datalist.innerHTML = '';
-                patientClientsMap = {};
-                clients.forEach(c => {
-                    const option = document.createElement('option');
-                    option.value = c.ruc;
-                    datalist.appendChild(option);
-                    patientClientsMap[c.ruc] = c;
-                });
-            } catch (e) { console.error("Error loading clients for patient form:", e); }
+        // Patient Name Auto-Fill Handler
+        const patientNameInput = document.getElementById('patientName');
+        if (patientNameInput) {
+            patientNameInput.addEventListener('input', function (e) {
+                const val = e.target.value;
+                // Check if the entered name exists in our map
+                if (patientNamesMap[val]) {
+                    const client = patientNamesMap[val];
+
+                    // Auto-fill other fields
+                    document.getElementById('patientClientId').value = client.id;
+                    document.getElementById('patientClientSearch').value = client.ruc || ''; // Fill RUC
+                    document.getElementById('patientPhone').value = client.telefono || '';
+
+                    showNotification('Datos del cliente cargados autom\u00e1ticamente', 'info');
+                } else {
+                    // If name is changed and doesn't match a client, should we clear RUC?
+                    // If the user is correcting the name of an existing client manually without changing RUC, we shouldn't wipe RUC.
+                    // But if they start typing a totally new name, the old RUC is likely invalid for this new person.
+                    // Heuristic: If there was a Client ID set, and now the name doesn't match that client's name...
+                    const currentId = document.getElementById('patientClientId').value;
+                    if (currentId) {
+                        // Check if the current name still matches the client associated with currentId?
+                        // Actually easier: if we had a match, we filled it. If we don't have a match, we assume it's a new or manual entry.
+                        // So we clear the associated Client ID and RUC to treat it as "Sin Cliente" or "Nuevo".
+                        document.getElementById('patientClientId').value = '';
+                        document.getElementById('patientClientSearch').value = '';
+                        // Keep phone as is, user might want to keep it or edit it.
+                    }
+                }
+            });
         }
 
-        // Patient client search handler
-        document.getElementById('patientClientSearch').addEventListener('input', function (e) {
-            const val = e.target.value;
-            if (patientClientsMap[val]) {
-                const client = patientClientsMap[val];
-                document.getElementById('patientClientId').value = client.id;
-                document.getElementById('patientName').value = client.razonSocial;
-                document.getElementById('patientPhone').value = client.telefono || '';
-            } else {
-                document.getElementById('patientClientId').value = '';
-                document.getElementById('patientName').value = '';
-                document.getElementById('patientPhone').value = '';
-            }
-        });
+        if (typeof document.getElementById('totalCashBox') !== 'undefined' && document.getElementById('totalCashBox')) {
+            // document.getElementById('totalCashBox').textContent = ... // If needed
+        }
 
         // ============ CASH CONTROL FUNCTIONS ============
-        window.initCashControlTab = async function() {
+        window.initCashControlTab = async function () {
             // Set current datetime
             const now = new Date();
             // Adjust for local timezone
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             const nowStr = now.toISOString().slice(0, 16);
-            
+
             if (document.getElementById('aperturaDate')) {
                 document.getElementById('aperturaDate').value = nowStr;
             }
             if (document.getElementById('manualClosureDate')) {
-                 document.getElementById('manualClosureDate').value = nowStr;
+                document.getElementById('manualClosureDate').value = nowStr;
             }
         };
 
-        document.getElementById('manualCashClosureForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
 
-            const submitButton = e.submitter; // Get the button that triggered the submit
-            if (submitButton) {
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
-            }
+        const aperturaForm = document.getElementById('aperturaCajaForm');
+        if (aperturaForm) {
+            aperturaForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = {
+                    fecha: document.getElementById('aperturaDate').value,
+                    monto: cleanFormattedNumber(document.getElementById('aperturaAmount').value),
+                    observacion: document.getElementById('aperturaObservation').value || 'Apertura de Caja',
+                    tipo: 'CAJA_CHICA',
+                    metodoPago: 'Efectivo'
+                };
+                // ... rest of handler
+                if (!data.fecha || data.monto <= 0) {
+                    showNotification('Por favor, complete la fecha y un monto válido y mayor a cero.', 'warning');
+                    return;
+                }
 
-            const closureDetails = {
-                totalIngresado: cleanFormattedNumber(document.getElementById('manualClosureTotalIncome').value),
-                totalEgresado: cleanFormattedNumber(document.getElementById('manualClosureTotalExpense').value),
-                totalEfectivo: cleanFormattedNumber(document.getElementById('manualClosureCashCollected').value),
-                cajaChica: cleanFormattedNumber(document.getElementById('manualClosurePettyCash').value),
-                observaciones: document.getElementById('manualClosureObservation').value
-            };
+                await postData('/api/income', data, () => {
+                    // On success, re-initialize the cash control tab to see updated values
+                    if (typeof initCashControlTab === 'function') {
+                        initCashControlTab();
+                    }
+                });
+                e.target.reset();
+                // Also reset the date to current time
+                const now = new Date();
+                const nowStr = now.toISOString().slice(0, 16);
+                document.getElementById('aperturaDate').value = nowStr;
+            });
+        }
 
-            const currentUser = document.getElementById('currentUserDisplay').textContent.replace('Usuario: ', '').trim() || 'Sistema';
 
-            const closureRecord = {
-                fecha: document.getElementById('manualClosureDate').value,
-                tipo: 'CIERRE_CAJA',
-                monto: 0, // Manual closure is a marker
-                metodoPago: 'N/A',
-                usuario: currentUser,
-                observacion: JSON.stringify(closureDetails)
-            };
+        // ============ ULTRASOUND TAB FUNCTIONS ============
+        window.initUltrasoundTab = async function () {
+            // ALWAYS set to today on init as requested by user ("automatico en el dia de hoy")
+            const now = new Date();
+            // Adjust for local timezone
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const today = now.toISOString().split('T')[0];
 
+            document.getElementById('ecoDateFrom').value = today;
+            document.getElementById('ecoDateTo').value = today;
+
+            await fetchAndFilterUltrasounds();
+        }
+
+        window.fetchAndFilterUltrasounds = async function () {
+            // Ensure we have fresh data. 
             try {
-                const res = await fetch('/api/income', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(closureRecord)
+                const res = await fetch('/api/patient');
+                if (res.ok) {
+                    const patients = await res.json();
+                    window.allPatientsData = patients; // Update global cache
+                    filterUltrasounds();
+                } else {
+                    console.error("Failed to refresh patients for ultrasound tab");
+                    filterUltrasounds();
+                }
+            } catch (e) {
+                console.error("Error fetching patients:", e);
+                filterUltrasounds();
+            }
+        }
+
+        window.filterUltrasounds = function () {
+            const dateFromStr = document.getElementById('ecoDateFrom').value;
+            const dateToStr = document.getElementById('ecoDateTo').value;
+
+            console.log("Filtering Ultrasounds. Date Range:", dateFromStr, "to", dateToStr);
+
+            let filtered = window.allPatientsData || [];
+            console.log("Total Patients Available:", filtered.length);
+
+            // Filter by Category
+            filtered = filtered.filter(p => {
+                // console.log(`Checking patient ${p.nombre}: Category='${p.categoria}'`);
+                return p.categoria === 'ECOGRAFIA';
+            });
+            console.log("Patients after Category 'ECOGRAFIA' filter:", filtered.length);
+
+            // Filter by Date
+            if (dateFromStr && dateToStr) {
+                const [yearFrom, monthFrom, dayFrom] = dateFromStr.split('-').map(Number);
+                const dateFrom = new Date(yearFrom, monthFrom - 1, dayFrom, 0, 0, 0, 0);
+
+                const [yearTo, monthTo, dayTo] = dateToStr.split('-').map(Number);
+                const dateTo = new Date(yearTo, monthTo - 1, dayTo, 23, 59, 59, 999);
+
+                filtered = filtered.filter(p => {
+                    if (!p.fechaIngreso) return false;
+                    const pDate = new Date(p.fechaIngreso);
+                    // Adjust pDate if needed, but usually ISO string works fine with new Date()
+                    // However, backend might send array or specific format. 
+                    // Let's assume standard ISO string from previous observations.
+                    return pDate >= dateFrom && pDate <= dateTo;
+                });
+            }
+            console.log("Patients after Date filter:", filtered.length);
+
+            filtered.sort((a, b) => new Date(a.fechaIngreso) - new Date(b.fechaIngreso));
+
+            // Render Table & Calculate Totals
+            const tbody = document.getElementById('ecografiasBody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                let totalIncome = 0;
+
+                filtered.forEach(p => {
+                    totalIncome += (p.monto || 0);
+                    const doctorPay = (p.monto || 0) * 0.8;
+
+                    // Client Name
+                    let clientName = 'Sin Cliente';
+                    if (window.allClientsData && p.clientId) {
+                        const c = window.allClientsData.find(x => x.id === p.clientId);
+                        if (c) clientName = c.razonSocial;
+                    } else if (p.nombre) {
+                        clientName = p.nombre;
+                    }
+
+                    // Append Edit Reason if exists
+                    let estudioDisplay = p.motivoConsulta || '-';
+                    if (p.motivoEdicion) {
+                        estudioDisplay += ` <span style="font-size: 0.85em; color: #e65100; font-style: italic;">(Editado: ${p.motivoEdicion})</span>`;
+                    }
+
+                    const row = `<tr>
+                        <td>${new Date(p.fechaIngreso).toLocaleString('es-PY', { hour12: false })}</td>
+                        <td>${clientName}</td>
+                        <td>${estudioDisplay}</td>
+                        <td style="text-align: right; color: #00796b; font-weight: 500;">${formatCurrency(p.monto)}</td>
+                        <td style="text-align: right; color: #e65100; font-weight: bold;">${formatCurrency(doctorPay)}</td>
+                        <td>${p.usuario || '-'}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
                 });
 
-                if (res.ok) {
-                    showNotification('Cierre de caja registrado exitosamente', 'success');
-                    e.target.reset();
-                    initCashControlTab(); // Reset date
-                    // Switch to movements tab to see the new entry
-                    const movTabBtn = document.querySelector('button[onclick*="tab-movimientos"]');
-                    if (movTabBtn) {
-                        openTab({ currentTarget: movTabBtn }, 'tab-movimientos');
-                    }
-                } else {
-                    const errorText = await res.text();
-                    showNotification(errorText || 'Error al registrar el cierre de caja', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error de conexión', 'error');
-            } finally {
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = '<i class="fas fa-archive"></i> Registrar Cierre';
-                }
+                // Update Header Totals
+                const doctorTotal = totalIncome * 0.8;
+                const clinicTotal = totalIncome * 0.2;
+
+                if (document.getElementById('headerTotalEco'))
+                    document.getElementById('headerTotalEco').textContent = formatCurrency(totalIncome);
+                if (document.getElementById('headerDoctorPay'))
+                    document.getElementById('headerDoctorPay').textContent = formatCurrency(doctorTotal);
+                if (document.getElementById('headerClinicShare'))
+                    document.getElementById('headerClinicShare').textContent = formatCurrency(clinicTotal);
             }
-        });
-
-        document.getElementById('aperturaCajaForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                fecha: document.getElementById('aperturaDate').value,
-                monto: cleanFormattedNumber(document.getElementById('aperturaAmount').value),
-                observacion: document.getElementById('aperturaObservation').value || 'Apertura de Caja',
-                tipo: 'CAJA_CHICA',
-                metodoPago: 'Efectivo'
-            };
-
-            if (!data.fecha || data.monto <= 0) {
-                showNotification('Por favor, complete la fecha y un monto válido y mayor a cero.', 'warning');
-                return;
-            }
-
-            await postData('/api/income', data, () => {
-                // On success, re-initialize the cash control tab to see updated values
-                if (typeof initCashControlTab === 'function') {
-                    initCashControlTab();
-                }
-            });
-            e.target.reset();
-            // Also reset the date to current time
-            const now = new Date();
-            const nowStr = now.toISOString().slice(0, 16);
-            document.getElementById('aperturaDate').value = nowStr;
-        });
+        }
 
         // Initial Load
         document.addEventListener('DOMContentLoaded', () => {
@@ -1925,7 +2322,13 @@
     <script>
         // Export Modal Functions
         function openExportModal() {
-            const today = new Date().toISOString().split('T')[0];
+            // Get local date string YYYY-MM-DD
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const today = `${year}-${month}-${day}`;
+
             document.getElementById('exportDateFrom').value = today;
             document.getElementById('exportDateTo').value = today;
             document.getElementById('exportModal').classList.add('active');
@@ -1948,12 +2351,20 @@
             const dateTo = new Date(yearTo, monthTo - 1, dayTo, 23, 59, 59, 999);
 
             if (!allMovementsData || allMovementsData.length === 0) {
-                await loadMovements();
+                // Ensure we fetch all data for export context
+                await loadMovements(null, null, false);
             }
 
+            console.log("Checking export filter. Total records:", allMovementsData.length);
+            console.log("Filter Range:", dateFrom, "to", dateTo);
+
             const filteredMovements = allMovementsData.filter(m => {
-                return m.date >= dateFrom && m.date <= dateTo;
+                // Ensure m.date is a Date object
+                const mDate = m.date instanceof Date ? m.date : new Date(m.date);
+                return mDate >= dateFrom && mDate <= dateTo;
             });
+
+            console.log("Filtered count:", filteredMovements.length);
 
             if (filteredMovements.length === 0) {
                 showNotification('No hay movimientos en el rango de fechas seleccionado', 'warning');
@@ -2078,11 +2489,15 @@
         }
 
         function initIncomesTab() {
-            // Neutralized
+            const today = getTodayDateString();
+            document.getElementById('incomesDateFrom').value = today;
+            document.getElementById('incomesDateTo').value = today;
+            filterIncomes();
         }
 
         function filterIncomes() {
-            // Neutralized
+            const [dateFrom, dateTo] = getDateRangeFromInputs('incomesDateFrom', 'incomesDateTo');
+            loadIncomes(dateFrom, dateTo);
         }
 
         function initExpensesTab() {
@@ -2095,6 +2510,18 @@
         function filterExpenses() {
             const [dateFrom, dateTo] = getDateRangeFromInputs('expensesDateFrom', 'expensesDateTo');
             loadExpenses(dateFrom, dateTo);
+        }
+
+        // --- Movements Filter ---
+        function filterMovements() {
+            const [dateFrom, dateTo] = getDateRangeFromInputs('movementsDateFrom', 'movementsDateTo');
+            // Call global loadMovements from movements.js
+            // render=true because this is UI filtering
+            if (typeof loadMovements === 'function') {
+                loadMovements(dateFrom, dateTo, true);
+            } else {
+                console.error("loadMovements function not found");
+            }
         }
 
         // --- Auth & Init ---
@@ -2127,6 +2554,7 @@
 
             // Initial Load
             if (typeof loadClientsTable === 'function') loadClientsTable();
+            if (typeof loadClientsForPatientForm === 'function') loadClientsForPatientForm();
             // Clients for autocomplete are loaded dynamically when needed or here
         });
 
@@ -2240,11 +2668,13 @@
                     // We pass a mock event object with currentTarget set to the button
                     if (typeof openTab === 'function') {
                         openTab({ currentTarget: patientsTabBtn }, 'tab-pacientes');
+                        if (typeof initPatientsTab === 'function') initPatientsTab();
                     }
                 }
             }
         }
     </script>
+    <script src="js/movements.js"></script>
 </body>
 
 </html>
